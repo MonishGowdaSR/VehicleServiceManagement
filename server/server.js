@@ -3,6 +3,7 @@ import dotenv from "dotenv";
 import cors from "cors";
 import connectDB from "./config/db.js";
 import authRoutes from "./routes/authRoutes.js";
+import protect from "./middleware/authMiddleware.js";
 
 dotenv.config();
 
@@ -16,6 +17,11 @@ connectDB();
 
 // Routes
 app.use("/api/auth", authRoutes);
+
+// protected test route
+app.get("/api/protected", protect, (req, res) => {
+  res.json({ message: "Protected route accessed", user: req.user });
+});
 
 
 app.get("/", (req, res) => {
