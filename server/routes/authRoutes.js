@@ -1,10 +1,23 @@
 import express from "express";
-import { registerUser, loginUser } from "../controllers/authController.js";
+import {
+  registerUser,
+  verifyOtp,
+  completeKyc,
+} from "../controllers/authController.js";
+import { upload } from "../middleware/upload.js";
 
 const router = express.Router();
 
-// routes
 router.post("/register", registerUser);
-router.post("/login", loginUser);
+router.post("/verify-otp", verifyOtp);
+
+router.post(
+  "/kyc",
+  upload.fields([
+    { name: "idDocument", maxCount: 1 },
+    { name: "profilePhoto", maxCount: 1 },
+  ]),
+  completeKyc
+);
 
 export default router;
