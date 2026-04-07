@@ -1,0 +1,9 @@
+POST http://localhost:5000/api/vehicles
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2OWQzNmEwNzkzNWIwN2JiZjEzMjJhY2UiLCJyb2xlIjoidXNlciIsImlhdCI6MTc3NTQ2OTQzOCwiZXhwIjoxNzc2MDc0MjM4fQ.WNHMlAy0Bob6LUachUSer2yfLNR9K1QJhdYwfwmUzk4
+Content-Type: application/json
+
+{
+  "vehicleNumber": "KA01AB1234",
+  "vehicleType": "car",
+  "brand": "Honda"
+}

@@ -1,27 +1,17 @@
 import express from "express";
+import protect from "../middleware/auth.js";
 import {
   addVehicle,
   getVehicles,
   updateVehicle,
-  deleteVehicle,
-  getVehicleStats,
+  deleteVehicle
 } from "../controllers/vehicleController.js";
-
-import protect from "../middleware/authMiddleware.js";
-import adminOnly from "../middleware/adminMiddleware.js";
 
 const router = express.Router();
 
-// All routes are protected
-
-router.get("/stats", protect, adminOnly, getVehicleStats);
-
-
-router.post("/", protect, addVehicle);          // user + admin
-router.get("/", protect, getVehicles);          // user + admin
-
-// admin only
-router.put("/:id", protect, adminOnly, updateVehicle);
-router.delete("/:id", protect, adminOnly, deleteVehicle);
+router.post("/", protect, addVehicle);
+router.get("/", protect, getVehicles);
+router.put("/:id", protect, updateVehicle);
+router.delete("/:id", protect, deleteVehicle);
 
 export default router;

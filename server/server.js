@@ -3,7 +3,7 @@ import dotenv from "dotenv";
 import cors from "cors";
 import connectDB from "./config/db.js";
 import authRoutes from "./routes/authRoutes.js";
-import protect from "./middleware/authMiddleware.js";
+import protect from "./middleware/auth.js";
 import vehicleRoutes from "./routes/vehicleRoutes.js";
 
 dotenv.config();

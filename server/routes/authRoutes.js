@@ -3,8 +3,11 @@ import {
   registerUser,
   verifyOtp,
   completeKyc,
+  sendLoginOtp,
+  verifyLoginOtp,
 } from "../controllers/authController.js";
-import { upload } from "../middleware/upload.js";
+
+import upload from "../middleware/uploadMiddleware.js";
 
 const router = express.Router();
 
@@ -13,11 +16,12 @@ router.post("/verify-otp", verifyOtp);
 
 router.post(
   "/kyc",
-  upload.fields([
-    { name: "idDocument", maxCount: 1 },
-    { name: "profilePhoto", maxCount: 1 },
-  ]),
+
   completeKyc
 );
+
+// LOGIN
+router.post("/login/send-otp", sendLoginOtp);
+router.post("/login/verify-otp", verifyLoginOtp);
 
 export default router;

@@ -1,124 +1,130 @@
-import Vehicle from "../models/Vehicle.js";
+import Vehicle from "../models/vehicleModel.js";
+import {
+  normalizeVehicleNumber,
+  isValidIndianVehicleNumber,
+} from "../middleware/vehicleValidation.js";
 
-
-// ADD VEHICLE
+// ✅ ADD VEHICLE (clean + safe)
 export const addVehicle = async (req, res) => {
   try {
-    const { ownerName, vehicleNumber, serviceType } = req.body;
+    const userId = req.user.id;
+
+    let { vehicleNumber, vehicleType } = req.body;
+
+    // 🔹 Basic validation
+    if (!vehicleNumber || !vehicleType) {
+      return res.status(400).json({
+        message: "Vehicle number and type are required",
+      });
+    }
+
+    // 🔹 Normalize + validate
+    vehicleNumber = normalizeVehicleNumber(vehicleNumber);
+
+    if (!isValidIndianVehicleNumber(vehicleNumber)) {
+      return res.status(400).json({
+        message: "Invalid vehicle number format",
+      });
+    }
 
     const vehicle = await Vehicle.create({
-      ownerName,
+      user: userId,
       vehicleNumber,
-      serviceType
+      vehicleType,
     });
 
     res.status(201).json(vehicle);
+
   } catch (error) {
+    // 🔹 Duplicate vehicle protection
+    if (error.code === 11000) {
+      return res.status(400).json({
+        message: "Vehicle already exists",
+      });
+    }
+
+    console.error("DB ERROR:", error.message);
     res.status(500).json({ message: error.message });
   }
 };
 
 
-// GET ALL VEHICLES
+
+// ✅ GET USER VEHICLES
 export const getVehicles = async (req, res) => {
   try {
-    // 🔹 1. Extract query params
-    const { keyword, status, page = 1, limit = 5 } = req.query;
+    const userId = req.user.id;
 
-    // 🔹 2. Build filter object
-    let query = {};
+    const vehicles = await Vehicle.find({
+      user: userId,
+      isDeleted: false,
+    }).sort({ createdAt: -1 });
 
-    // Search by ownerName OR vehicleNumber
-    if (keyword) {
-      query.$or = [
-        { ownerName: { $regex: keyword, $options: "i" } },
-        { vehicleNumber: { $regex: keyword, $options: "i" } },
-      ];
-    }
-
-    // Filter by status
-    if (status) {
-      query.status = status;
-    }
-
-    // 🔹 3. Pagination calculations
-    const pageNumber = Number(page);
-    const pageSize = Number(limit);
-
-    const skip = (pageNumber - 1) * pageSize;
-
-    // 🔹 4. Fetch data
-    const vehicles = await Vehicle.find(query)
-      .skip(skip)
-      .limit(pageSize)
-      .sort({ createdAt: -1 });
-
-    // 🔹 5. Total count
-    const total = await Vehicle.countDocuments(query);
-
-    // 🔹 6. Response
-    res.json({
-      total,
-      page: pageNumber,
-      pages: Math.ceil(total / pageSize),
-      vehicles,
-    });
-
+    res.json(vehicles);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
 
 
-// UPDATE STATUS
+
+// ✅ UPDATE VEHICLE
 export const updateVehicle = async (req, res) => {
   try {
-    const vehicle = await Vehicle.findById(req.params.id);
+    const userId = req.user.id;
+    const { id } = req.params;
+
+    let { vehicleNumber, vehicleType, brand, model, fuelType } = req.body;
+
+    const vehicle = await Vehicle.findOne({ _id: id, user: userId });
 
     if (!vehicle) {
       return res.status(404).json({ message: "Vehicle not found" });
     }
 
-    vehicle.status = req.body.status || vehicle.status;
+    if (vehicleNumber) {
+      vehicleNumber = normalizeVehicleNumber(vehicleNumber);
 
-    const updatedVehicle = await vehicle.save();
+      if (!isValidIndianVehicleNumber(vehicleNumber)) {
+        return res.status(400).json({
+          message: "Invalid vehicle number format",
+        });
+      }
 
-    res.json(updatedVehicle);
+      vehicle.vehicleNumber = vehicleNumber;
+    }
+
+    vehicle.vehicleType = vehicleType || vehicle.vehicleType;
+    vehicle.brand = brand || vehicle.brand;
+    vehicle.model = model || vehicle.model;
+    vehicle.fuelType = fuelType || vehicle.fuelType;
+
+    const updated = await vehicle.save();
+
+    res.json(updated);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
 
 
-//  DELETE VEHICLE
+
+// ✅ SOFT DELETE
 export const deleteVehicle = async (req, res) => {
   try {
-    const vehicle = await Vehicle.findById(req.params.id);
+    const userId = req.user.id;
+
+    const vehicle = await Vehicle.findOneAndUpdate(
+      { _id: req.params.id, user: userId },
+      { isDeleted: true },
+      { new: true }
+    );
 
     if (!vehicle) {
       return res.status(404).json({ message: "Vehicle not found" });
     }
 
-    await vehicle.deleteOne();
-
-    res.json({ message: "Vehicle removed" });
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-};
-
-export const getVehicleStats = async (req, res) => {
-  try {
-    const totalVehicles = await Vehicle.countDocuments();
-
-    const completed = await Vehicle.countDocuments({ status: "Completed" });
-    const pending = await Vehicle.countDocuments({ status: "Pending" });
-
-    res.json({
-      totalVehicles,
-      completed,
-      pending,
-    });
+    res.json({ message: "Vehicle deleted" });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

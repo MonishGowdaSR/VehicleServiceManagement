@@ -1,8 +1,7 @@
 import User from "../models/User.js";
 import bcrypt from "bcryptjs";
 import { sendOTP } from "../utils/sendOtp.js";
-import cloudinary from "../utils/cloudinary.js";
-import streamifier from "streamifier";
+import jwt from "jsonwebtoken";
 
 // REGISTER
 export const registerUser = async (req, res) => {
@@ -23,7 +22,7 @@ export const registerUser = async (req, res) => {
 
     const otpData = {
       code: otpCode,
-      expiresAt: new Date(Date.now() + 5 * 60 * 1000),
+      expiresAt: new Date(Date.now() + 10 * 60 * 1000),
     };
 
     const user = await User.create({
@@ -36,17 +35,18 @@ export const registerUser = async (req, res) => {
 
     await sendOTP(phone, otpCode);
 
+    console.log("REGISTER OTP:", otpCode);
+
     res.status(201).json({
       message: "OTP sent successfully",
       userId: user._id,
     });
   } catch (error) {
-    console.error(error);
     res.status(500).json({ message: "Registration failed" });
   }
 };
 
-// VERIFY OTP
+// VERIFY REGISTER OTP
 export const verifyOtp = async (req, res) => {
   try {
     const { userId, otp } = req.body;
@@ -77,7 +77,7 @@ export const verifyOtp = async (req, res) => {
   }
 };
 
-// KYC
+// KYC (TEMP WITHOUT CLOUDINARY)
 export const completeKyc = async (req, res) => {
   try {
     const { userId, idType, idNumber } = req.body;
@@ -88,7 +88,6 @@ export const completeKyc = async (req, res) => {
       return res.status(400).json({ message: "Unauthorized" });
     }
 
-    // ID VALIDATION
     if (idType === "AADHAR" && !/^\d{12}$/.test(idNumber)) {
       return res.status(400).json({ message: "Invalid Aadhar" });
     }
@@ -97,12 +96,10 @@ export const completeKyc = async (req, res) => {
       return res.status(400).json({ message: "Invalid DL" });
     }
 
-    // ⚠️ TEMP: Skip Cloudinary
     if (!req.files || !req.files.idDocument || !req.files.profilePhoto) {
       return res.status(400).json({ message: "Files missing" });
     }
 
-    // Just store dummy values
     user.idType = idType;
     user.idNumber = idNumber;
     user.idDocumentUrl = "dummy-id-url";
@@ -112,10 +109,87 @@ export const completeKyc = async (req, res) => {
     await user.save();
 
     res.status(200).json({
-      message: "KYC completed (without cloudinary)",
+      message: "KYC completed",
     });
   } catch (error) {
-    console.error(error);
     res.status(500).json({ message: "KYC failed" });
+  }
+};
+
+// 🔥 LOGIN STEP 1 → SEND OTP
+export const sendLoginOtp = async (req, res) => {
+  try {
+    const { phone } = req.body;
+
+    const user = await User.findOne({ phone });
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
+
+    user.otp = {
+      code: otpCode,
+      expiresAt: new Date(Date.now() + 10 * 60 * 1000),
+    };
+
+    await user.save();
+
+    await sendOTP(phone, otpCode);
+
+    console.log("LOGIN OTP:", otpCode);
+
+    res.status(200).json({
+      message: "Login OTP sent",
+    });
+  } catch (error) {
+    res.status(500).json({ message: "Login OTP failed" });
+  }
+};
+// 🔥 LOGIN STEP 2 → VERIFY OTP + JWT
+export const verifyLoginOtp = async (req, res) => {
+  try {
+    const { phone, otp } = req.body;
+
+    const user = await User.findOne({ phone });
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    if (!user.otp || user.otp.code !== otp) {
+      return res.status(400).json({ message: "Invalid OTP" });
+    }
+
+    if (new Date() > user.otp.expiresAt) {
+      return res.status(400).json({ message: "OTP expired" });
+    }
+
+    // clear OTP
+    user.otp = undefined;
+    await user.save();
+
+    // 🔐 GENERATE JWT (✅ FIXED)
+    const token = jwt.sign(
+      {
+        id: user._id,          // ✅ IMPORTANT FIX
+        role: user.role,
+      },
+      process.env.JWT_SECRET || "secretkey",
+      { expiresIn: "7d" }
+    );
+
+    res.status(200).json({
+      message: "Login successful",
+      token,
+      user: {
+        id: user._id,
+        name: user.name,
+        phone: user.phone,
+      },
+    });
+  } catch (error) {
+    res.status(500).json({ message: "Login failed" });
   }
 };
