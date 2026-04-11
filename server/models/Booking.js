@@ -96,7 +96,10 @@ const bookingSchema = new mongoose.Schema(
         },
         role: {
           type: String,
-          enum: ["USER", "ADMIN", "TECHNICIAN", "PICKUP_AGENT"]
+          role: {
+  type: String,
+  enum: ["USER", "ADMIN", "TECHNICIAN", "PICKUP_AGENT", "SYSTEM"]
+}
         }
       }
     ],

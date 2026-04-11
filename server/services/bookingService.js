@@ -150,11 +150,23 @@ export const updateBookingStatusService = async (
 
   /* ================= DETERMINE ROLE ================= */
   let roleToUse = user?.role || "SYSTEM";
+   /*let roleToUse = user?.role || "SYSTEM";  //for testing 
 
+// 🔥 TEMP TEST OVERRIDES
+if (
+  nextStatus === "IN_PROGRESS" ||
+  nextStatus === "COMPLETED"
+) {
+  roleToUse = "TECHNICIAN";
+}
+
+if (nextStatus === "DELIVERED") {
+  roleToUse = "ADMIN";
+}
   // 🔥 SYSTEM ACTIONS (auto assignment)
   if (nextStatus === BOOKING_STATUS.ASSIGNED) {
     roleToUse = "SYSTEM";
-  }
+  } */
 
   /* ================= VALIDATIONS ================= */
   validateTransition(currentStatus, nextStatus, booking.bookingType);

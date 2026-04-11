@@ -7,7 +7,10 @@ import protect from "./middleware/auth.js";
 import vehicleRoutes from "./routes/vehicleRoutes.js";
 import { seedStaff } from "./seeders/staffSeeder.js";
 import bookingRoutes from "./routes/bookingRoutes.js";
-
+import staffAuthRoutes from "./routes/staffAuthRoutes.js";
+import staffRoutes from "./routes/staffRoutes.js";
+import staffActionRoutes from "./routes/staffActionRoutes.js";
+import adminRoutes from "./routes/adminRoutes.js";
 
 
 dotenv.config();
@@ -23,6 +26,10 @@ app.use("/api/bookings", bookingRoutes);
 // Routes
 app.use("/api/auth", authRoutes);
 app.use("/api/vehicles", vehicleRoutes);
+app.use("/api/staff-auth", staffAuthRoutes);
+app.use("/api/staff", staffRoutes);
+app.use("/api/staff", staffActionRoutes);
+app.use("/api/admin", adminRoutes);
 
 app.get("/api/protected", protect, (req, res) => {
   res.json({ message: "Protected route accessed", user: req.user });

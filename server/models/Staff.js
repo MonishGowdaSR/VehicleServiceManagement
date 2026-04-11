@@ -52,7 +52,11 @@ const staffSchema = new mongoose.Schema(
       lat: Number,
       lng: Number,
       lastUpdated: Date
-    }
+    },
+    otp: {
+  code: String,
+  expiresAt: Date
+},
   },
   { timestamps: true }
 );
