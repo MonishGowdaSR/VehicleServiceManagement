@@ -5,70 +5,64 @@ const userSchema = new mongoose.Schema(
     name: {
       type: String,
       required: true,
+      trim: true
     },
 
     phone: {
       type: String,
       required: true,
       unique: true,
+      trim: true
     },
 
     email: {
       type: String,
       required: true,
       unique: true,
+      lowercase: true,
+      trim: true
     },
 
+    // ⚠️ Optional if OTP only
     password: {
-      type: String,
-      required: true,
+      type: String
     },
 
-    // OTP SYSTEM
-    isPhoneVerified: {
-      type: Boolean,
-      default: false,
-    },
-
-    otp: {
-      code: String,
-      expiresAt: Date,
-    },
-
-    // KYC
-    idType: {
-      type: String,
-      enum: ["AADHAR", "DL"],
-    },
-
-    idNumber: {
-      type: String,
-    },
-
-    idDocumentUrl: {
-      type: String,
-    },
-
-    profilePhoto: {
-      type: String,
-    },
-
-    isKycVerified: {
-      type: Boolean,
-      default: false,
-    },
-
-    // ACCOUNT STATUS
     role: {
       type: String,
-      enum: ["user", "admin"],
-      default: "user",
+      enum: ["USER", "ADMIN"],
+      default: "USER",
+      index: true
     },
 
     isActive: {
       type: Boolean,
-      default: true,
+      default: true
     },
+
+    isPhoneVerified: {
+      type: Boolean,
+      default: false
+    },
+
+    otp: {
+      code: String,
+      expiresAt: Date
+    },
+
+    idType: {
+      type: String,
+      enum: ["AADHAR", "DL"]
+    },
+
+    idNumber: String,
+    idDocumentUrl: String,
+    profilePhoto: String,
+
+    isKycVerified: {
+      type: Boolean,
+      default: false
+    }
   },
   { timestamps: true }
 );

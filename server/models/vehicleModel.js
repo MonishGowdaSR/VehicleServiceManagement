@@ -6,58 +6,61 @@ const vehicleSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
       required: true,
-      index: true,
+      index: true
     },
 
     vehicleNumber: {
       type: String,
       required: true,
       uppercase: true,
-      trim: true,
+      trim: true
     },
 
     vehicleType: {
       type: String,
       enum: ["car", "bike", "scooter"],
-      required: true,
+      required: true
     },
 
     brand: {
       type: String,
       trim: true,
-      default: "",
+      default: ""
     },
 
     model: {
       type: String,
       trim: true,
-      default: "",
+      default: ""
     },
 
     fuelType: {
       type: String,
       enum: ["petrol", "diesel", "electric", "cng"],
-      default: "petrol",
+      default: "petrol"
     },
 
     image: {
       type: String,
-      default: null,
+      default: null
     },
 
     isDeleted: {
       type: Boolean,
       default: false,
-      index: true,
-    },
+      index: true
+    }
   },
   { timestamps: true }
 );
 
-// ✅ Prevent duplicate vehicle per user
+// Prevent duplicate vehicle per user
 vehicleSchema.index({ user: 1, vehicleNumber: 1 }, { unique: true });
 
-// ✅ Normalize vehicle number before saving (extra safety)
+// 🔥 Additional index
+vehicleSchema.index({ vehicleNumber: 1 });
+
+// Normalize number
 vehicleSchema.pre("save", function () {
   if (this.vehicleNumber) {
     this.vehicleNumber = this.vehicleNumber
