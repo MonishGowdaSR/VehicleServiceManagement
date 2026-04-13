@@ -2,63 +2,79 @@ import { useState } from "react";
 import Dashboard from "./Dashboard";
 
 function Login() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [phone, setPhone] = useState("");
+  const [otp, setOtp] = useState("");
+  const [step, setStep] = useState(1);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
-  const handleLogin = async (e) => {
-    e.preventDefault();
+  // STEP 1 → SEND OTP
+  const sendOtp = async () => {
+    const res = await fetch("http://localhost:5000/api/auth/login/send-otp", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ phone })
+    });
 
-    try {
-      const res = await fetch("http://localhost:5000/api/auth/login", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({ email, password })
-      });
+    const data = await res.json();
+    console.log("OTP RESPONSE:", data);
 
-      const data = await res.json();
-
-      if (res.ok) {
-        localStorage.setItem("token", data.token);
-        setIsLoggedIn(true); // ✅ switch to dashboard
-      } else {
-        alert(data.message);
-      }
-    } catch (error) {
-      console.error(error);
+    if (res.ok) {
+      setStep(2);
     }
   };
 
-  // ✅ if logged in → show dashboard
+  // STEP 2 → VERIFY OTP
+  const verifyOtp = async () => {
+    const res = await fetch("http://localhost:5000/api/auth/login/verify-otp", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ phone, otp })
+    });
+
+    const data = await res.json();
+    console.log("VERIFY RESPONSE:", data);
+
+    if (res.ok) {
+      localStorage.setItem("token", data.token); // ✅ STORE TOKEN
+      setIsLoggedIn(true);
+    }
+  };
+
   if (isLoggedIn) {
     return <Dashboard />;
   }
 
   return (
     <div>
-      <h2>Login</h2>
+      <h2>Login (OTP)</h2>
 
-      <form onSubmit={handleLogin}>
-        <input
-          type="email"
-          placeholder="Enter email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-        />
-        <br /><br />
+      {step === 1 && (
+        <>
+          <input
+            placeholder="Enter phone"
+            value={phone}
+            onChange={(e) => setPhone(e.target.value)}
+          />
+          <br /><br />
+          <button onClick={sendOtp}>Send OTP</button>
+        </>
+      )}
 
-        <input
-          type="password"
-          placeholder="Enter password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-        />
-        <br /><br />
-
-        <button type="submit">Login</button>
-      </form>
+      {step === 2 && (
+        <>
+          <input
+            placeholder="Enter OTP"
+            value={otp}
+            onChange={(e) => setOtp(e.target.value)}
+          />
+          <br /><br />
+          <button onClick={verifyOtp}>Verify OTP</button>
+        </>
+      )}
     </div>
   );
 }

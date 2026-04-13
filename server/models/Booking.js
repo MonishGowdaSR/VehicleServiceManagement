@@ -18,7 +18,7 @@ const bookingSchema = new mongoose.Schema(
 
     serviceType: {
       type: String,
-      enum: ["GENERAL_SERVICE", "REPAIR", "CAR_WASH"],
+      enum: ["GENERAL_SERVICE", "REPAIR", "CAR_WASH", "PICKUP"],
       required: true
     },
 
@@ -112,16 +112,20 @@ const bookingSchema = new mongoose.Schema(
       deliveredAt: Date
     },
 
-    liveTracking: {
-      currentLocation: {
-        lat: Number,
-        lng: Number
-      },
-      isActive: {
-        type: Boolean,
-        default: false
-      }
-    },
+  liveTracking: {
+  isActive: { type: Boolean, default: false },
+
+  currentLocation: {
+    lat: Number,
+    lng: Number,
+    updatedAt: Date
+  },
+
+  agentId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Staff"
+  }
+},
 
     liveStreamUrl: {
       type: String,

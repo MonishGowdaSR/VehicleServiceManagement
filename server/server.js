@@ -1,59 +1,64 @@
 import express from "express";
 import dotenv from "dotenv";
 import cors from "cors";
+import http from "http";
+import { Server } from "socket.io";
+
 import connectDB from "./config/db.js";
+
 import authRoutes from "./routes/authRoutes.js";
-import protect from "./middleware/auth.js";
-import vehicleRoutes from "./routes/vehicleRoutes.js";
-import { seedStaff } from "./seeders/staffSeeder.js";
 import bookingRoutes from "./routes/bookingRoutes.js";
+import vehicleRoutes from "./routes/vehicleRoutes.js";
 import staffAuthRoutes from "./routes/staffAuthRoutes.js";
-import staffRoutes from "./routes/staffRoutes.js";
 import staffActionRoutes from "./routes/staffActionRoutes.js";
 import adminRoutes from "./routes/adminRoutes.js";
-
+import trackingRoutes from "./routes/trackingRoutes.js";
 
 dotenv.config();
-
+connectDB();
 
 const app = express();
 
-
-app.use(cors());
 app.use(express.json());
-app.use("/api/bookings", bookingRoutes);
+app.use(cors());
+
+// 🔥 Create server
+const server = http.createServer(app);
+
+// 🔥 Socket setup
+const io = new Server(server, {
+  cors: { origin: "*" }
+});
+
+app.set("io", io);
+
+io.on("connection", (socket) => {
+  console.log("User connected:", socket.id);
+
+  socket.on("joinBookingRoom", (bookingId) => {
+    socket.join(bookingId);
+  });
+
+  socket.on("disconnect", () => {
+    console.log("User disconnected");
+  });
+});
 
 // Routes
 app.use("/api/auth", authRoutes);
+app.use("/api/bookings", bookingRoutes);
 app.use("/api/vehicles", vehicleRoutes);
-app.use("/api/staff-auth", staffAuthRoutes);
-app.use("/api/staff", staffRoutes);
-app.use("/api/staff", staffActionRoutes);
+app.use("/api/staff/auth", staffAuthRoutes);
+app.use("/api/staff/actions", staffActionRoutes);
 app.use("/api/admin", adminRoutes);
-
-app.get("/api/protected", protect, (req, res) => {
-  res.json({ message: "Protected route accessed", user: req.user });
-});
+app.use("/api/tracking", trackingRoutes);
 
 app.get("/", (req, res) => {
-  res.send("Backend Running...");
+  res.send("API is running...");
 });
 
 const PORT = process.env.PORT || 5000;
 
-// ✅ Single startup flow
-const startServer = async () => {
-  try {
-    await connectDB();     // ensure DB connects first
-    //await seedStaff();     // run ONCE
-
-    app.listen(PORT, () => {
-      console.log(`Server running on port ${PORT}`);
-    });
-
-  } catch (error) {
-    console.error("Server error:", error);
-  }
-};
-
-startServer();
+server.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+});

@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 
 function Dashboard() {
   const [vehicles, setVehicles] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   const [form, setForm] = useState({
     ownerName: "",
@@ -21,9 +22,25 @@ function Dashboard() {
       });
 
       const data = await res.json();
-      setVehicles(data.vehicles || data);
+
+      console.log("VEHICLES RESPONSE:", data);
+
+      // ✅ FIX: handle different response formats safely
+      if (Array.isArray(data)) {
+        setVehicles(data);
+      } else if (Array.isArray(data.data)) {
+        setVehicles(data.data);
+      } else if (Array.isArray(data.vehicles)) {
+        setVehicles(data.vehicles);
+      } else {
+        setVehicles([]); // fallback
+      }
+
     } catch (error) {
-      console.error(error);
+      console.error("Fetch error:", error);
+      setVehicles([]);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -54,9 +71,12 @@ function Dashboard() {
         alert("Vehicle added");
         setForm({ ownerName: "", vehicleNumber: "", serviceType: "" });
         fetchVehicles();
+      } else {
+        const data = await res.json();
+        alert(data.message || "Error adding vehicle");
       }
     } catch (error) {
-      console.error(error);
+      console.error("Add error:", error);
     }
   };
 
@@ -75,7 +95,7 @@ function Dashboard() {
         fetchVehicles();
       }
     } catch (error) {
-      console.error(error);
+      console.error("Delete error:", error);
     }
   };
 
@@ -96,7 +116,7 @@ function Dashboard() {
         fetchVehicles();
       }
     } catch (error) {
-      console.error(error);
+      console.error("Update error:", error);
     }
   };
 
@@ -135,26 +155,35 @@ function Dashboard() {
 
       <hr />
 
+      {/* 🔹 Loading */}
+      {loading && <p>Loading vehicles...</p>}
+
+      {/* 🔹 Empty state */}
+      {!loading && vehicles.length === 0 && (
+        <p>No vehicles found</p>
+      )}
+
       {/* 🔹 Vehicle List */}
-      {vehicles.map((v) => (
-        <div key={v._id}>
-          <p><b>{v.ownerName}</b></p>
-          <p>{v.vehicleNumber}</p>
-          <p>{v.serviceType}</p>
-          <p>Status: {v.status}</p>
+      {!loading &&
+        Array.isArray(vehicles) &&
+        vehicles.map((v) => (
+          <div key={v._id}>
+          <p><b>{v.ownerName || "No Owner Name"}</b></p>
+            <p>{v.vehicleNumber}</p>
+            <p>{v.serviceType}</p>
+            <p>Status: {v.status || "Pending"}</p>
 
-          {/* 🔹 Buttons */}
-          <button onClick={() => handleStatusUpdate(v._id)}>
-            Mark Completed
-          </button>
+            <button onClick={() => handleStatusUpdate(v._id)}>
+              Mark Completed
+            </button>
 
-          <button onClick={() => handleDelete(v._id)}>
-            Delete
-          </button>
+            <button onClick={() => handleDelete(v._id)}>
+              Delete
+            </button>
 
-          <hr />
-        </div>
-      ))}
+            <hr />
+          </div>
+        ))}
     </div>
   );
 }

@@ -6,22 +6,17 @@ export const registerUser = async (req, res) => {
   try {
     const { name, phone, mobile, email, password } = req.body;
 
-    console.log("REGISTER BODY:", req.body);
-
     const userPhone = phone || mobile;
 
-    // validation
     if (!name || !userPhone || !email || !password) {
       return res.status(400).json({
         message: "All fields are required",
       });
     }
 
-    // normalize
     const cleanEmail = email.toLowerCase().trim();
     const cleanPhone = userPhone.trim();
 
-    // check existing user
     const existingUser = await User.findOne({
       $or: [{ email: cleanEmail }, { phone: cleanPhone }],
     });
@@ -32,13 +27,12 @@ export const registerUser = async (req, res) => {
       });
     }
 
-    // create user
     const user = await User.create({
       name,
       phone: cleanPhone,
       email: cleanEmail,
-      password, // (hash later)
-      role: "USER",
+      password,
+      role: "USER", // ✅ always uppercase
     });
 
     return res.status(201).json({
@@ -76,6 +70,9 @@ export const sendLoginOtp = async (req, res) => {
       });
     }
 
+    // ✅ FIX: ensure role always valid
+    user.role = user.role.toUpperCase();
+
     // generate OTP
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
 
@@ -86,7 +83,6 @@ export const sendLoginOtp = async (req, res) => {
 
     await user.save();
 
-    // Twilio fallback
     console.log("OTP (fallback):", otp);
 
     return res.json({
@@ -121,7 +117,6 @@ export const verifyOtp = async (req, res) => {
       });
     }
 
-    // validate OTP
     if (
       user.otp.code !== otp ||
       user.otp.expiresAt < new Date()
@@ -131,12 +126,14 @@ export const verifyOtp = async (req, res) => {
       });
     }
 
-    // mark verified
     user.isPhoneVerified = true;
     user.otp = undefined;
+
+    // ✅ ensure role safe again
+    user.role = user.role.toUpperCase();
+
     await user.save();
 
-    // generate token (WITH ROLE)
     const token = jwt.sign(
       {
         id: user._id,

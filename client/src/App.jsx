@@ -1,11 +1,18 @@
+import { Routes, Route } from "react-router-dom";
 import Login from "./pages/Login";
+import Dashboard from "./pages/Dashboard";
+import AgentSimulator from "./pages/AgentSimulator";
+import Tracking from "./pages/Tracking";
+import "leaflet/dist/leaflet.css";
 
 function App() {
   return (
-    <div>
-      <h1>Vehicle Service Management</h1>
-      <Login />
-    </div>
+    <Routes>
+      <Route path="/" element={<Login />} />
+      <Route path="/dashboard" element={<Dashboard />} />
+      <Route path="/agent" element={<AgentSimulator />} />
+      <Route path="/track" element={<Tracking />} />
+    </Routes>
   );
 }
 
