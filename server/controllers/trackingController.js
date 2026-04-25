@@ -1,6 +1,9 @@
 import Booking from "../models/Booking.js";
 
-// ✅ START TRACKING
+
+// ==================================================
+// START TRACKING
+// ==================================================
 export const startTracking = async (req, res) => {
   try {
     const { bookingId } = req.params;
@@ -9,7 +12,9 @@ export const startTracking = async (req, res) => {
     const booking = await Booking.findById(bookingId);
 
     if (!booking) {
-      return res.status(404).json({ message: "Booking not found" });
+      return res.status(404).json({
+        message: "Booking not found"
+      });
     }
 
     if (booking.serviceType !== "PICKUP") {
@@ -21,6 +26,7 @@ export const startTracking = async (req, res) => {
     booking.liveTracking = {
       isActive: true,
       agentId: userId,
+      phase: "TO_PICKUP",
       currentLocation: null
     };
 
@@ -30,28 +36,34 @@ export const startTracking = async (req, res) => {
       success: true,
       message: "Tracking started"
     });
-
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    res.status(500).json({
+      message: err.message
+    });
   }
 };
 
 
-// ✅ UPDATE LOCATION
+// ==================================================
+// UPDATE LOCATION
+// ==================================================
 export const updateLocation = async (req, res) => {
   try {
     const { bookingId } = req.params;
-    const { lat, lng } = req.body;
+    const { lat, lng, phase } = req.body;
 
     const booking = await Booking.findById(bookingId);
 
     if (!booking) {
-      return res.status(404).json({ message: "Booking not found" });
+      return res.status(404).json({
+        message: "Booking not found"
+      });
     }
 
     booking.liveTracking.currentLocation = {
       lat,
       lng,
+      phase,
       updatedAt: new Date()
     };
 
@@ -59,16 +71,20 @@ export const updateLocation = async (req, res) => {
 
     res.json({
       success: true,
-      message: "Location updated"
+      message: "Updated"
     });
 
-  } catch (err) {
-    res.status(500).json({ message: err.message });
+  } catch (error) {
+    res.status(500).json({
+      message: error.message
+    });
   }
 };
 
 
-// ✅ GET TRACKING LOCATION (FINAL FIXED)
+// ==================================================
+// GET TRACKING LOCATION
+// ==================================================
 export const getTrackingLocation = async (req, res) => {
   try {
     const { bookingId } = req.params;
@@ -81,28 +97,33 @@ export const getTrackingLocation = async (req, res) => {
       });
     }
 
-    if (!booking.liveTracking || !booking.liveTracking.currentLocation) {
+    if (
+      !booking.liveTracking ||
+      !booking.liveTracking.currentLocation
+    ) {
       return res.status(404).json({
         message: "Location not available"
       });
     }
 
     res.json({
-      success: true,
-      data: {
-        currentLocation: booking.liveTracking.currentLocation,
-        isActive: booking.liveTracking.isActive,
-        agentId: booking.liveTracking.agentId
-      }
-    });
-
+  success: true,
+  data: {
+    currentLocation: booking.liveTracking.currentLocation,
+    phase: booking.liveTracking.currentLocation.phase
+  }
+});
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(500).json({
+      message: error.message
+    });
   }
 };
 
 
-// ✅ STOP TRACKING
+// ==================================================
+// STOP TRACKING
+// ==================================================
 export const stopTracking = async (req, res) => {
   try {
     const { bookingId } = req.params;
@@ -110,7 +131,9 @@ export const stopTracking = async (req, res) => {
     const booking = await Booking.findById(bookingId);
 
     if (!booking) {
-      return res.status(404).json({ message: "Booking not found" });
+      return res.status(404).json({
+        message: "Booking not found"
+      });
     }
 
     booking.liveTracking.isActive = false;
@@ -121,8 +144,9 @@ export const stopTracking = async (req, res) => {
       success: true,
       message: "Tracking stopped"
     });
-
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    res.status(500).json({
+      message: err.message
+    });
   }
 };

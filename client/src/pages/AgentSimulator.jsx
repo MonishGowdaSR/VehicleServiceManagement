@@ -1,101 +1,129 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 
 function AgentSimulator() {
   const token = localStorage.getItem("token");
 
-  // 🔥 PUT YOUR REAL BOOKING ID
+  // SAME BOOKING ID
   const bookingId = "69d6054dedbaeaf6bb44a520";
 
+  // Fixed locations
   const customer = [12.9716, 77.5946];
   const garage = [12.9352, 77.6245];
 
+  // Random starting point
+  const startPoint = [12.9785, 77.6105];
+
   const [location, setLocation] = useState({
-    lat: 12.9616,
-    lng: 77.5846
+    lat: startPoint[0],
+    lng: startPoint[1]
   });
 
-  const phaseRef = useRef("TO_CUSTOMER");
+  const [phase, setPhase] = useState("TO_PICKUP");
 
-  const moveTowards = (current, target) => {
-    const step = 0.001;
+  const phaseRef = useRef("TO_PICKUP");
+  const routeRef = useRef([]);
+  const stepIndexRef = useRef(0);
 
-    let lat = current.lat;
-    let lng = current.lng;
+  // keep refs synced
+  useEffect(() => {
+    phaseRef.current = phase;
+  }, [phase]);
 
-    if (Math.abs(target[0] - lat) > 0.0001) {
-      lat += target[0] > lat ? step : -step;
+  // ---------------------------
+  // OSRM route loader
+  // ---------------------------
+  const loadRoute = async (from, to) => {
+    try {
+      const url = `https://router.project-osrm.org/route/v1/driving/${from[1]},${from[0]};${to[1]},${to[0]}?overview=full&geometries=geojson`;
+
+      const res = await fetch(url);
+      const data = await res.json();
+
+      if (data.routes?.length) {
+        const coords = data.routes[0].geometry.coordinates.map((c) => ({
+          lat: c[1],
+          lng: c[0]
+        }));
+
+        routeRef.current = coords;
+        stepIndexRef.current = 0;
+      }
+    } catch (err) {
+      console.log("Route Error:", err);
     }
-
-    if (Math.abs(target[1] - lng) > 0.0001) {
-      lng += target[1] > lng ? step : -step;
-    }
-
-    return { lat, lng };
   };
 
+  // ---------------------------
+  // First route load
+  // ---------------------------
+  useEffect(() => {
+    loadRoute(startPoint, customer);
+  }, []);
+
+  // ---------------------------
+  // Movement engine
+  // ---------------------------
   useEffect(() => {
     const interval = setInterval(async () => {
-      let target;
+      const route = routeRef.current;
 
-      if (phaseRef.current === "TO_CUSTOMER") target = customer;
-      else if (phaseRef.current === "TO_GARAGE") target = garage;
-      else target = customer;
+      if (!route.length) return;
 
-      const newLoc = moveTowards(location, target);
+      // move next point
+      const point = route[stepIndexRef.current];
 
-      setLocation(newLoc);
+      if (!point) return;
 
-      // 🔥 PHASE SWITCH
-      if (
-        phaseRef.current === "TO_CUSTOMER" &&
-        Math.abs(newLoc.lat - customer[0]) < 0.002 &&
-        Math.abs(newLoc.lng - customer[1]) < 0.002
-      ) {
-        phaseRef.current = "TO_GARAGE";
-        console.log("Pickup done → Going to Garage");
+      setLocation(point);
+
+      // send backend
+      try {
+        await fetch(
+          `http://localhost:5000/api/tracking/update-location/${bookingId}`,
+          {
+            method: "PATCH",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`
+            },
+            body: JSON.stringify({
+              lat: point.lat,
+              lng: point.lng,
+              phase: phaseRef.current
+            })
+          }
+        );
+      } catch (err) {
+        console.log(err);
       }
 
-      else if (
-        phaseRef.current === "TO_GARAGE" &&
-        Math.abs(newLoc.lat - garage[0]) < 0.002 &&
-        Math.abs(newLoc.lng - garage[1]) < 0.002
-      ) {
-        phaseRef.current = "RETURN";
-        console.log("Garage reached → Returning");
-      }
+      stepIndexRef.current++;
 
-      else if (
-        phaseRef.current === "RETURN" &&
-        Math.abs(newLoc.lat - customer[0]) < 0.002 &&
-        Math.abs(newLoc.lng - customer[1]) < 0.002
-      ) {
-        console.log("✅ Delivery Completed");
-      }
-
-      // 🔥 SEND TO BACKEND
-      await fetch(
-        `http://localhost:5000/api/tracking/update-location/${bookingId}`,
-        {
-          method: "PATCH",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`
-          },
-          body: JSON.stringify(newLoc)
+      // destination reached
+      if (stepIndexRef.current >= route.length) {
+        if (phaseRef.current === "TO_PICKUP") {
+          setPhase("TO_GARAGE");
+          await loadRoute(customer, garage);
+        } else if (phaseRef.current === "TO_GARAGE") {
+          setPhase("RETURN");
+          await loadRoute(garage, customer);
+        } else {
+          clearInterval(interval);
+          console.log("Completed");
         }
-      );
-
-    }, 2000);
+      }
+    }, 1500);
 
     return () => clearInterval(interval);
-  }, [location]);
+  }, []);
 
   return (
     <div>
-      <h2>🚗 Agent Simulator</h2>
-      <p>Lat: {location.lat}</p>
-      <p>Lng: {location.lng}</p>
-      <p>Phase: {phaseRef.current}</p>
+      <h1>🚗 Agent Simulator</h1>
+
+      <h2>Lat: {location.lat}</h2>
+      <h2>Lng: {location.lng}</h2>
+      <h2>Phase: {phase}</h2>
     </div>
   );
 }

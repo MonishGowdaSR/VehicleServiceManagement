@@ -1,11 +1,12 @@
 import { useState } from "react";
-import Dashboard from "./Dashboard";
+import { useNavigate } from "react-router-dom";
 
 function Login() {
   const [phone, setPhone] = useState("");
   const [otp, setOtp] = useState("");
   const [step, setStep] = useState(1);
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  const navigate = useNavigate(); // ✅ IMPORTANT
 
   // STEP 1 → SEND OTP
   const sendOtp = async () => {
@@ -39,14 +40,12 @@ function Login() {
     console.log("VERIFY RESPONSE:", data);
 
     if (res.ok) {
-      localStorage.setItem("token", data.token); // ✅ STORE TOKEN
-      setIsLoggedIn(true);
+      localStorage.setItem("token", data.token);
+
+      // ✅ REDIRECT instead of render
+      navigate("/dashboard");
     }
   };
-
-  if (isLoggedIn) {
-    return <Dashboard />;
-  }
 
   return (
     <div>
