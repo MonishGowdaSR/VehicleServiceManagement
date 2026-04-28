@@ -1,7 +1,9 @@
+import Booking from "../models/Booking.js";
 import {
   createBookingService,
   updateBookingStatusService,
 } from "../services/bookingService.js";
+
 
 /* ========================= */
 /* CREATE BOOKING */
@@ -33,6 +35,27 @@ export const createBooking = async (req, res) => {
     return res.status(400).json({
       success: false,
       message: error.message,
+    });
+  }
+};
+
+
+export const getMyBookings = async (req, res) => {
+  try {
+    const bookings = await Booking.find({
+      user: req.user.id
+    })
+      .populate("vehicle")
+      .sort({ createdAt: -1 });
+
+    res.status(200).json({
+      success: true,
+      data: bookings
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message
     });
   }
 };

@@ -4,8 +4,10 @@ import {
   updateBookingStatus,
 } from "../controllers/bookingController.js";
 import protect from "../middleware/auth.js";
+import { getMyBookings } from "../controllers/bookingController.js";
 
 const router = express.Router();
+router.get("/", protect, getMyBookings);
 
 /* ========================= */
 /* CREATE BOOKING */

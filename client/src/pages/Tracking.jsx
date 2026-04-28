@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { useParams, useNavigate } from "react-router-dom";
 import {
   MapContainer,
   TileLayer,
@@ -12,14 +13,16 @@ function Recenter({ position }) {
 
   useEffect(() => {
     map.setView(position, 15);
-  }, [position]);
+  }, [position, map]);
 
   return null;
 }
 
 function Tracking() {
+  const { id } = useParams();
+  const navigate = useNavigate();
+
   const token = localStorage.getItem("token");
-  const bookingId = "69d6054dedbaeaf6bb44a520";
 
   const customer = [12.9716, 77.5946];
   const garage = [12.9352, 77.6245];
@@ -28,12 +31,10 @@ function Tracking() {
   const [phase, setPhase] = useState("TO_PICKUP");
   const [route, setRoute] = useState([]);
   const [eta, setEta] = useState("--");
+  const [notStarted, setNotStarted] = useState(false);
 
   const lastPhase = useRef("");
 
-  // -------------------------
-  // Detect phase from live location
-  // -------------------------
   const detectPhase = (lat, lng) => {
     const nearCustomer =
       Math.abs(lat - customer[0]) < 0.002 &&
@@ -44,8 +45,13 @@ function Tracking() {
       Math.abs(lng - garage[1]) < 0.002;
 
     if (nearGarage) return "RETURN";
-    if (nearCustomer && lastPhase.current === "TO_PICKUP")
+
+    if (
+      nearCustomer &&
+      lastPhase.current === "TO_PICKUP"
+    ) {
       return "TO_GARAGE";
+    }
 
     if (lastPhase.current === "TO_GARAGE") return "TO_GARAGE";
     if (lastPhase.current === "RETURN") return "RETURN";
@@ -53,14 +59,11 @@ function Tracking() {
     return "TO_PICKUP";
   };
 
-  // -------------------------
-  // Poll backend
-  // -------------------------
   useEffect(() => {
     const interval = setInterval(async () => {
       try {
         const res = await fetch(
-          `http://localhost:5000/api/tracking/location/${bookingId}`,
+          `http://localhost:5000/api/tracking/location/${id}`,
           {
             headers: {
               Authorization: `Bearer ${token}`
@@ -70,25 +73,28 @@ function Tracking() {
 
         const data = await res.json();
 
-        const loc = data.data.currentLocation;
+        const loc = data?.data?.currentLocation;
 
+        if (!loc || !loc.lat || !loc.lng) {
+          setNotStarted(true);
+          return;
+        }
+
+        setNotStarted(false);
         setLocation(loc);
 
         const newPhase = detectPhase(loc.lat, loc.lng);
 
         setPhase(newPhase);
         lastPhase.current = newPhase;
-      } catch (err) {
-        console.log(err);
+      } catch (error) {
+        console.log(error);
       }
     }, 1500);
 
     return () => clearInterval(interval);
-  }, []);
+  }, [id]);
 
-  // -------------------------
-  // Load route whenever phase/location changes
-  // -------------------------
   useEffect(() => {
     if (!location) return;
 
@@ -104,13 +110,11 @@ function Tracking() {
       const data = await res.json();
 
       if (data.routes?.length) {
-        const coords = data.routes[0].geometry.coordinates.map((c) => [
-          c[1],
-          c[0]
-        ]);
+        const coords = data.routes[0].geometry.coordinates.map(
+          (c) => [c[1], c[0]]
+        );
 
         setRoute(coords);
-
         setEta(Math.ceil(data.routes[0].duration / 60));
       }
     };
@@ -118,12 +122,31 @@ function Tracking() {
     loadRoute();
   }, [location, phase]);
 
+  if (notStarted) {
+    return (
+      <div style={{ padding: "40px" }}>
+        <button onClick={() => navigate("/dashboard")}>
+          Back
+        </button>
+
+        <h1>Tracking Not Started</h1>
+        <p>
+          Pickup agent has not started live tracking
+          for this booking yet.
+        </p>
+      </div>
+    );
+  }
+
   if (!location) return <h2>Loading...</h2>;
 
   return (
     <div>
-      <h1>📍 Live Tracking</h1>
+      <button onClick={() => navigate("/dashboard")}>
+        Back
+      </button>
 
+      <h1>📍 Live Tracking</h1>
       <h2>Status: {phase}</h2>
       <h2>ETA: {eta} mins</h2>
 

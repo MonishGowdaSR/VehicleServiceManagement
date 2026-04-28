@@ -13,7 +13,7 @@ import staffAuthRoutes from "./routes/staffAuthRoutes.js";
 import staffActionRoutes from "./routes/staffActionRoutes.js";
 import adminRoutes from "./routes/adminRoutes.js";
 import trackingRoutes from "./routes/trackingRoutes.js";
-
+import staffRoutes from "./routes/staffRoutes.js";
 dotenv.config();
 connectDB();
 
@@ -21,6 +21,7 @@ const app = express();
 
 app.use(express.json());
 app.use(cors());
+app.use("/api/staff", staffRoutes);
 
 // 🔥 Create server
 const server = http.createServer(app);

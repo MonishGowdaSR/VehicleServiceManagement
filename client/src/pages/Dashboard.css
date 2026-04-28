@@ -1,0 +1,293 @@
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: Arial, Helvetica, sans-serif;
+  background: #f4f7fb;
+}
+
+.dashboard-page {
+  max-width: 1200px;
+  margin: auto;
+  padding: 24px;
+}
+
+/* Top Bar */
+.topbar {
+  background: #111827;
+  color: #ffffff;
+  padding: 18px 24px;
+  border-radius: 14px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.08);
+}
+
+.topbar h1 {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 700;
+}
+
+.top-actions {
+  display: flex;
+  gap: 12px;
+}
+
+.topbar button {
+  border: none;
+  padding: 10px 16px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-weight: 700;
+  transition: 0.2s ease;
+}
+
+.topbar button:hover {
+  transform: translateY(-1px);
+}
+
+.top-actions button:first-child {
+  background: #2563eb;
+  color: white;
+}
+
+.logout-btn {
+  background: #ef4444;
+  color: white;
+}
+
+/* Cards */
+.welcome-card,
+.form-card,
+.vehicles-section {
+  background: #ffffff;
+  border-radius: 14px;
+  padding: 22px;
+  margin-bottom: 24px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
+}
+
+.welcome-card h2,
+.form-card h3,
+.vehicles-section h3 {
+  margin-top: 0;
+  margin-bottom: 14px;
+  color: #111827;
+}
+
+.welcome-card p {
+  margin: 0;
+  color: #6b7280;
+}
+
+/* Forms */
+.form-card form {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 14px;
+}
+
+.form-card input,
+.form-card select {
+  padding: 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 10px;
+  font-size: 14px;
+  outline: none;
+}
+
+.form-card input:focus,
+.form-card select:focus {
+  border-color: #2563eb;
+}
+
+.form-card button {
+  background: #2563eb;
+  color: white;
+  border: none;
+  border-radius: 10px;
+  padding: 12px;
+  cursor: pointer;
+  font-weight: 700;
+  transition: 0.2s ease;
+}
+
+.form-card button:hover {
+  background: #1d4ed8;
+}
+
+/* Vehicles Grid */
+.vehicle-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 18px;
+}
+
+.vehicle-card {
+  border: 1px solid #e5e7eb;
+  border-radius: 14px;
+  padding: 18px;
+  background: #fafafa;
+  transition: 0.2s ease;
+}
+
+.vehicle-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 20px rgba(0,0,0,0.05);
+}
+
+.vehicle-card h4 {
+  margin: 0 0 10px;
+  color: #111827;
+}
+
+.vehicle-card p {
+  margin: 6px 0;
+  color: #374151;
+}
+
+/* Status */
+.status {
+  display: inline-block;
+  margin-top: 10px;
+  background: #dcfce7;
+  color: #166534;
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+/* Buttons in Cards */
+.card-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.card-actions button {
+  flex: 1;
+  border: none;
+  border-radius: 10px;
+  padding: 10px;
+  cursor: pointer;
+  font-weight: 700;
+  transition: 0.2s ease;
+}
+
+.card-actions button:first-child {
+  background: #10b981;
+  color: white;
+}
+
+.card-actions button:first-child:hover {
+  background: #059669;
+}
+
+.delete-btn {
+  background: #ef4444;
+  color: white;
+}
+
+.delete-btn:hover {
+  background: #dc2626;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .dashboard-page {
+    padding: 16px;
+  }
+
+  .topbar {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 14px;
+  }
+
+  .top-actions {
+    width: 100%;
+  }
+
+  .top-actions button {
+    flex: 1;
+  }
+
+  .form-card form {
+    grid-template-columns: 1fr;
+  }
+
+  .vehicle-grid {
+    grid-template-columns: 1fr;
+  }
+}
+/* Select styling */
+.form-card select {
+  padding: 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 10px;
+  font-size: 14px;
+  background: white;
+  outline: none;
+}
+
+.form-card select:focus {
+  border-color: #2563eb;
+}
+
+/* Booking cards spacing */
+.vehicle-card p {
+  margin: 6px 0;
+  color: #374151;
+  font-size: 14px;
+}
+
+/* Better section titles */
+.vehicles-section h3,
+.form-card h3 {
+  font-size: 20px;
+  font-weight: 700;
+}
+
+/* Empty state */
+.empty-text {
+  color: #6b7280;
+  font-size: 14px;
+}
+
+/* Status badge wrap fix */
+.status {
+  margin-top: 12px;
+}
+/* Ensure all form controls consistent */
+.form-card input,
+.form-card select,
+.form-card button {
+  width: 100%;
+}
+
+/* Pickup address full width */
+.form-card input::placeholder {
+  color: #9ca3af;
+}
+
+/* Better spacing when extra field appears */
+.form-card form {
+  align-items: stretch;
+}
+
+/* Booking cards long text handling */
+.vehicle-card h4,
+.vehicle-card p {
+  word-break: break-word;
+}
+
+/* Empty states */
+.vehicles-section p {
+  color: #6b7280;
+}

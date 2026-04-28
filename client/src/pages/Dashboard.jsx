@@ -1,189 +1,255 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import "./Dashboard.css";
 
 function Dashboard() {
   const [vehicles, setVehicles] = useState([]);
+  const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
 
   const [form, setForm] = useState({
-    ownerName: "",
     vehicleNumber: "",
-    serviceType: ""
+    vehicleType: ""
+  });
+
+  const [booking, setBooking] = useState({
+    vehicle: "",
+    serviceType: "GENERAL_SERVICE",
+    bookingDate: "",
+    slotKey: "08-09",
+    bookingType: "SELF",
+    pickupAddress: { address: "" }
   });
 
   const token = localStorage.getItem("token");
-
-  // 🔹 Fetch vehicles
-  const fetchVehicles = async () => {
-    try {
-      const res = await fetch("http://localhost:5000/api/vehicles", {
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
-      });
-
-      const data = await res.json();
-
-      console.log("VEHICLES RESPONSE:", data);
-
-      // ✅ FIX: handle different response formats safely
-      if (Array.isArray(data)) {
-        setVehicles(data);
-      } else if (Array.isArray(data.data)) {
-        setVehicles(data.data);
-      } else if (Array.isArray(data.vehicles)) {
-        setVehicles(data.vehicles);
-      } else {
-        setVehicles([]); // fallback
-      }
-
-    } catch (error) {
-      console.error("Fetch error:", error);
-      setVehicles([]);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const navigate = useNavigate();
 
   useEffect(() => {
     fetchVehicles();
+    fetchBookings();
   }, []);
 
-  // 🔹 Handle form input
+  const fetchVehicles = async () => {
+    const res = await fetch("http://localhost:5000/api/vehicles", {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+
+    const data = await res.json();
+    setVehicles(Array.isArray(data) ? data : []);
+    setLoading(false);
+  };
+
+  const fetchBookings = async () => {
+    const res = await fetch("http://localhost:5000/api/bookings", {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+
+    const data = await res.json();
+    setBookings(data.data || []);
+  };
+
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-  // 🔹 Add vehicle
+  const handleBookingChange = (e) => {
+    setBooking({ ...booking, [e.target.name]: e.target.value });
+  };
+
+  const handlePickupAddress = (e) => {
+    setBooking({
+      ...booking,
+      pickupAddress: { address: e.target.value }
+    });
+  };
+
   const handleAdd = async (e) => {
     e.preventDefault();
 
-    try {
-      const res = await fetch("http://localhost:5000/api/vehicles", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`
-        },
-        body: JSON.stringify(form)
-      });
+    const res = await fetch("http://localhost:5000/api/vehicles", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`
+      },
+      body: JSON.stringify(form)
+    });
 
-      if (res.ok) {
-        alert("Vehicle added");
-        setForm({ ownerName: "", vehicleNumber: "", serviceType: "" });
-        fetchVehicles();
-      } else {
-        const data = await res.json();
-        alert(data.message || "Error adding vehicle");
-      }
-    } catch (error) {
-      console.error("Add error:", error);
+    const data = await res.json();
+
+    if (res.ok) {
+      alert("Vehicle added");
+      setForm({
+        vehicleNumber: "",
+        vehicleType: ""
+      });
+      fetchVehicles();
+    } else {
+      alert(data.message);
     }
   };
 
-  // 🔹 Delete vehicle
-  const handleDelete = async (id) => {
-    try {
-      const res = await fetch(`http://localhost:5000/api/vehicles/${id}`, {
-        method: "DELETE",
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
-      });
+  const handleBooking = async (e) => {
+    e.preventDefault();
 
-      if (res.ok) {
-        alert("Vehicle deleted");
-        fetchVehicles();
-      }
-    } catch (error) {
-      console.error("Delete error:", error);
+    const res = await fetch("http://localhost:5000/api/bookings", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`
+      },
+      body: JSON.stringify(booking)
+    });
+
+    const data = await res.json();
+
+    if (res.ok && data.success) {
+      alert("Booking successful");
+      fetchBookings();
+    } else {
+      alert(data.message);
     }
   };
 
-  // 🔹 Update status
-  const handleStatusUpdate = async (id) => {
-    try {
-      const res = await fetch(`http://localhost:5000/api/vehicles/${id}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`
-        },
-        body: JSON.stringify({ status: "Completed" })
-      });
-
-      if (res.ok) {
-        alert("Status updated");
-        fetchVehicles();
-      }
-    } catch (error) {
-      console.error("Update error:", error);
-    }
+  const logout = () => {
+    localStorage.removeItem("token");
+    navigate("/");
   };
 
   return (
-    <div>
-      <h2>Dashboard</h2>
+    <div className="dashboard-page">
+      <header className="topbar">
+        <h1>Vehicle Dashboard</h1>
 
-      {/* 🔹 Add Vehicle Form */}
-      <form onSubmit={handleAdd}>
-        <input
-          name="ownerName"
-          placeholder="Owner Name"
-          value={form.ownerName}
-          onChange={handleChange}
-        />
-        <br /><br />
+        <div className="top-actions">
+          <button className="logout-btn" onClick={logout}>
+            Logout
+          </button>
+        </div>
+      </header>
 
-        <input
-          name="vehicleNumber"
-          placeholder="Vehicle Number"
-          value={form.vehicleNumber}
-          onChange={handleChange}
-        />
-        <br /><br />
+      {/* Add Vehicle */}
+      <section className="form-card">
+        <h3>Add Vehicle</h3>
 
-        <input
-          name="serviceType"
-          placeholder="Service Type"
-          value={form.serviceType}
-          onChange={handleChange}
-        />
-        <br /><br />
+        <form onSubmit={handleAdd}>
+          <input
+            name="vehicleNumber"
+            placeholder="Vehicle Number"
+            value={form.vehicleNumber}
+            onChange={handleChange}
+            required
+          />
 
-        <button type="submit">Add Vehicle</button>
-      </form>
+          <input
+            name="vehicleType"
+            placeholder="Vehicle Type"
+            value={form.vehicleType}
+            onChange={handleChange}
+            required
+          />
 
-      <hr />
+          <button type="submit">Add Vehicle</button>
+        </form>
+      </section>
 
-      {/* 🔹 Loading */}
-      {loading && <p>Loading vehicles...</p>}
+      {/* Book Service */}
+      <section className="form-card">
+        <h3>Book Service</h3>
 
-      {/* 🔹 Empty state */}
-      {!loading && vehicles.length === 0 && (
-        <p>No vehicles found</p>
-      )}
+        <form onSubmit={handleBooking}>
+          <select
+            name="vehicle"
+            value={booking.vehicle}
+            onChange={handleBookingChange}
+            required
+          >
+            <option value="">Select Vehicle</option>
 
-      {/* 🔹 Vehicle List */}
-      {!loading &&
-        Array.isArray(vehicles) &&
-        vehicles.map((v) => (
-          <div key={v._id}>
-          <p><b>{v.ownerName || "No Owner Name"}</b></p>
-            <p>{v.vehicleNumber}</p>
-            <p>{v.serviceType}</p>
-            <p>Status: {v.status || "Pending"}</p>
+            {vehicles.map((v) => (
+              <option key={v._id} value={v._id}>
+                {v.vehicleNumber}
+              </option>
+            ))}
+          </select>
 
-            <button onClick={() => handleStatusUpdate(v._id)}>
-              Mark Completed
-            </button>
+          <select
+            name="serviceType"
+            value={booking.serviceType}
+            onChange={handleBookingChange}
+          >
+            <option value="GENERAL_SERVICE">General Service</option>
+            <option value="REPAIR">Repair</option>
+            <option value="CAR_WASH">Car Wash</option>
+          </select>
 
-            <button onClick={() => handleDelete(v._id)}>
-              Delete
-            </button>
+          <input
+            type="date"
+            name="bookingDate"
+            value={booking.bookingDate}
+            onChange={handleBookingChange}
+            required
+          />
 
-            <hr />
-          </div>
-        ))}
+          <select
+            name="slotKey"
+            value={booking.slotKey}
+            onChange={handleBookingChange}
+          >
+            <option value="08-09">08:00 - 09:00</option>
+            <option value="09-10">09:00 - 10:00</option>
+            <option value="10-1130">10:00 - 11:30</option>
+          </select>
+
+          <select
+            name="bookingType"
+            value={booking.bookingType}
+            onChange={handleBookingChange}
+          >
+            <option value="SELF">Self Drop</option>
+            <option value="PICKUP">Pickup Needed</option>
+          </select>
+
+          {booking.bookingType === "PICKUP" && (
+            <input
+              placeholder="Pickup Address"
+              value={booking.pickupAddress.address}
+              onChange={handlePickupAddress}
+              required
+            />
+          )}
+
+          <button type="submit">Book Now</button>
+        </form>
+      </section>
+
+      {/* My Bookings */}
+      <section className="vehicles-section">
+        <h3>My Bookings</h3>
+
+        {loading && <p>Loading...</p>}
+
+        <div className="vehicle-grid">
+          {bookings.map((b) => (
+            <div className="vehicle-card" key={b._id}>
+              <h4>{b.vehicle?.vehicleNumber}</h4>
+              <p>{b.serviceType}</p>
+              <p>{new Date(b.bookingDate).toLocaleDateString()}</p>
+              <p>{b.slotKey}</p>
+
+              <span className="status">{b.status}</span>
+
+              <div className="card-actions">
+                <button
+                  onClick={() => navigate(`/track/${b._id}`)}
+                >
+                  Track
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
     </div>
   );
 }
