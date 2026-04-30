@@ -4,91 +4,159 @@
 
 body {
   margin: 0;
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: Arial, Helvetica,
+    sans-serif;
   background: #f4f7fb;
 }
 
+/* ================= PAGE ================= */
 .admin-page {
-  max-width: 1400px;
+  max-width: 1450px;
   margin: auto;
   padding: 24px;
 }
 
-/* Topbar */
+/* ================= TOPBAR ================= */
 .admin-topbar {
   background: #111827;
   color: white;
   padding: 18px 24px;
-  border-radius: 14px;
+  border-radius: 16px;
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 24px;
+  gap: 16px;
 }
 
 .admin-topbar h1 {
   margin: 0;
-  font-size: 24px;
+  font-size: 25px;
 }
 
 .logout-btn {
+  border: none;
   background: #ef4444;
   color: white;
-  border: none;
-  padding: 10px 16px;
+  padding: 11px 18px;
   border-radius: 10px;
   cursor: pointer;
   font-weight: 700;
 }
 
-/* Section */
+.logout-btn:hover {
+  background: #dc2626;
+}
+
+/* ================= SECTION ================= */
 .admin-section {
   background: white;
-  border-radius: 14px;
+  border-radius: 16px;
   padding: 24px;
+  box-shadow: 0 8px 24px
+    rgba(0, 0, 0, 0.05);
 }
 
 .admin-section h2 {
   margin-top: 0;
   margin-bottom: 20px;
+  font-size: 23px;
 }
 
-/* Grid */
+/* ================= GRID ================= */
 .booking-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  grid-template-columns: repeat(
+    auto-fit,
+    minmax(360px, 1fr)
+  );
   gap: 18px;
 }
 
+/* ================= CARD ================= */
 .booking-card {
   border: 1px solid #e5e7eb;
-  border-radius: 14px;
+  border-radius: 16px;
   padding: 18px;
   background: #fafafa;
+  transition: 0.2s;
 }
 
-.booking-card h3 {
-  margin-top: 0;
-  margin-bottom: 10px;
+.booking-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 20px
+    rgba(0, 0, 0, 0.05);
+}
+
+.booking-card h3,
+.booking-card h4 {
+  margin: 0 0 10px;
+  color: #111827;
+}
+
+.booking-card h4 {
+  margin-top: 12px;
+  font-size: 18px;
 }
 
 .booking-card p {
   margin: 8px 0;
   color: #374151;
   font-size: 14px;
+  line-height: 1.45;
+  word-break: break-word;
 }
 
+/* ================= CUSTOMER ROW ================= */
+.customer-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 14px;
+}
+
+.cust-img {
+  width: 58px;
+  height: 58px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #2563eb;
+  background: white;
+}
+
+/* ================= VEHICLE IMAGE ================= */
+.vehicle-img {
+  width: 100%;
+  height: 180px;
+  object-fit: cover;
+  border-radius: 12px;
+  margin: 10px 0;
+  border: 1px solid #e5e7eb;
+}
+
+/* ================= DAMAGE IMAGE ================= */
+.damage-img {
+  width: 100%;
+  height: 160px;
+  object-fit: cover;
+  border-radius: 12px;
+  margin-top: 8px;
+  margin-bottom: 10px;
+  border: 1px solid #fecaca;
+}
+
+/* ================= STATUS ================= */
 .status {
   margin-left: 6px;
   background: #dbeafe;
   color: #1d4ed8;
-  padding: 4px 8px;
+  padding: 4px 10px;
   border-radius: 999px;
   font-size: 12px;
   font-weight: 700;
 }
 
-/* Buttons */
+/* ================= ACTIONS ================= */
 .actions {
   margin-top: 16px;
 }
@@ -108,7 +176,7 @@ body {
   background: #1d4ed8;
 }
 
-/* Responsive */
+/* ================= RESPONSIVE ================= */
 @media (max-width: 768px) {
   .admin-page {
     padding: 16px;
@@ -117,10 +185,18 @@ body {
   .admin-topbar {
     flex-direction: column;
     align-items: flex-start;
-    gap: 12px;
+  }
+
+  .logout-btn {
+    width: 100%;
   }
 
   .booking-grid {
     grid-template-columns: 1fr;
+  }
+
+  .vehicle-img,
+  .damage-img {
+    height: auto;
   }
 }

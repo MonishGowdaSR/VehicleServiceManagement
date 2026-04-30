@@ -14,6 +14,26 @@ function AdminDashboard() {
   const navigate =
     useNavigate();
 
+  /* ================= IMAGE URL FIX ================= */
+  const getImageUrl = (path) => {
+  if (!path) return "";
+
+  /* External URL */
+  if (path.startsWith("http")) {
+    return path;
+  }
+
+  /* Base64 image */
+  if (path.startsWith("data:image")) {
+    return path;
+  }
+
+  /* Local uploads folder */
+  return `http://localhost:5000/${path.replace(
+    /^\/+/,
+    ""
+  )}`;
+};
   useEffect(() => {
     fetchBookings();
   }, []);
@@ -49,76 +69,63 @@ function AdminDashboard() {
       id,
       status
     ) => {
-      try {
-        const res =
-          await fetch(
-            `http://localhost:5000/api/bookings/status/${id}`,
-            {
-              method:
-                "PATCH",
-              headers:
-                {
-                  "Content-Type":
-                    "application/json",
-                  Authorization: `Bearer ${token}`
-                },
-              body: JSON.stringify(
-                {
-                  status
-                }
-              )
-            }
-          );
-
-        const data =
-          await res.json();
-
-        alert(
-          data.message ||
-            status
+      const res =
+        await fetch(
+          `http://localhost:5000/api/bookings/status/${id}`,
+          {
+            method:
+              "PATCH",
+            headers:
+              {
+                "Content-Type":
+                  "application/json",
+                Authorization: `Bearer ${token}`
+              },
+            body: JSON.stringify(
+              {
+                status
+              }
+            )
+          }
         );
 
-        fetchBookings();
-      } catch (error) {
-        console.log(
-          error
-        );
-      }
+      const data =
+        await res.json();
+
+      alert(
+        data.message ||
+          status
+      );
+
+      fetchBookings();
     };
 
   const deliver =
     async (id) => {
-      try {
-        const res =
-          await fetch(
-            `http://localhost:5000/api/admin/deliver/${id}`,
-            {
-              method:
-                "PATCH",
-              headers:
-                {
-                  Authorization: `Bearer ${token}`
-                }
-            }
-          );
-
-        const data =
-          await res.json();
-
-        alert(
-          data.message ||
-            "Delivered"
+      const res =
+        await fetch(
+          `http://localhost:5000/api/admin/deliver/${id}`,
+          {
+            method:
+              "PATCH",
+            headers:
+              {
+                Authorization: `Bearer ${token}`
+              }
+          }
         );
 
-        fetchBookings();
-      } catch (error) {
-        console.log(
-          error
-        );
-      }
+      const data =
+        await res.json();
+
+      alert(
+        data.message ||
+          "Delivered"
+      );
+
+      fetchBookings();
     };
 
-  /* ================= LOGOUT ================= */
   const logout = () => {
     localStorage.removeItem(
       "adminToken"
@@ -158,33 +165,20 @@ function AdminDashboard() {
         );
 
       case "ASSIGNED":
-        if (
-          isSelf
-        ) {
-          return (
-            <button
-              onClick={() =>
-                updateStatus(
-                  booking._id,
-                  "IN_PROGRESS"
-                )
-              }
-            >
-              Start Service
-            </button>
-          );
-        }
-
         return (
           <button
             onClick={() =>
               updateStatus(
                 booking._id,
-                "PICKUP_STARTED"
+                isSelf
+                  ? "IN_PROGRESS"
+                  : "PICKUP_STARTED"
               )
             }
           >
-            Start Pickup
+            {isSelf
+              ? "Start Service"
+              : "Start Pickup"}
           </button>
         );
 
@@ -234,6 +228,23 @@ function AdminDashboard() {
     }
   };
 
+  const fullAddress = (
+    b
+  ) => {
+    if (
+      b.bookingType !==
+      "PICKUP"
+    ) {
+      return "Self Drop";
+    }
+
+    const a =
+      b.pickupAddress ||
+      {};
+
+    return `${a.houseNo || ""}, ${a.street || ""}, ${a.area || ""}, ${a.landmark || ""}, ${a.city || ""}, ${a.state || ""} - ${a.pincode || ""}`;
+  };
+
   return (
     <div className="admin-page">
       <header className="admin-topbar">
@@ -265,20 +276,67 @@ function AdminDashboard() {
                 }
                 className="booking-card"
               >
-                <h3>
-                  {b
-                    .vehicle
+                {/* CUSTOMER */}
+                <div className="customer-row">
+                  <img
+                    src={
+                      b.user
+                        ?.profilePhoto
+                        ? getImageUrl(
+                            b
+                              .user
+                              .profilePhoto
+                          )
+                        : `https://ui-avatars.com/api/?name=${b.user?.name || "User"}`
+                    }
+                    alt=""
+                    className="cust-img"
+                  />
+
+                  <div>
+                    <h3>
+                      {b.user
+                        ?.name ||
+                        "Customer"}
+                    </h3>
+
+                    <p>
+                      {b.user
+                        ?.phone ||
+                        "No Phone"}
+                    </p>
+                  </div>
+                </div>
+
+                {/* VEHICLE */}
+                <h4>
+                  {b.vehicle
                     ?.vehicleNumber ||
                     "No Vehicle"}
-                </h3>
+                </h4>
+
+                {b.vehicle
+                  ?.vehiclePhoto && (
+                  <img
+                    src={getImageUrl(
+                      b
+                        .vehicle
+                        .vehiclePhoto
+                    )}
+                    alt=""
+                    className="vehicle-img"
+                  />
+                )}
 
                 <p>
+                  Service:{" "}
                   {
                     b.serviceType
                   }
                 </p>
 
                 <p>
+                  Date:{" "}
                   {new Date(
                     b.bookingDate
                   ).toLocaleDateString()}
@@ -301,18 +359,51 @@ function AdminDashboard() {
                 </p>
 
                 <p>
+                  Issue:{" "}
+                  {b.issueDescription ||
+                    "No Description"}
+                </p>
+
+                {/* DAMAGE IMAGE */}
+                {b.damageImage && (
+                  <div>
+                    <p>
+                      Damage
+                      Image:
+                    </p>
+
+                    <img
+                      src={getImageUrl(
+                        b.damageImage
+                      )}
+                      alt=""
+                      className="damage-img"
+                    />
+                  </div>
+                )}
+
+                <p>
+                  Address:{" "}
+                  {fullAddress(
+                    b
+                  )}
+                </p>
+
+                <p>
                   Pickup Agent:{" "}
                   {b.bookingType ===
                   "SELF"
                     ? "Not Required"
-                    : b.pickupAgent
+                    : b
+                        .pickupAgent
                         ?.name ||
                       "Not Assigned"}
                 </p>
 
                 <p>
                   Technician:{" "}
-                  {b.technician
+                  {b
+                    .technician
                     ?.name ||
                     "Not Assigned"}
                 </p>

@@ -1,139 +1,263 @@
 import User from "../models/User.js";
 import jwt from "jsonwebtoken";
 
-/* ================= REGISTER USER ================= */
-export const registerUser = async (req, res) => {
-  try {
-    const { name, phone, email, password } =
-      req.body;
+/* ================= HELPERS ================= */
+const generateOtp = () =>
+  Math.floor(
+    100000 +
+      Math.random() * 900000
+  ).toString();
 
-    const existingUser =
-      await User.findOne({
-        $or: [{ phone }, { email }]
-      });
+const createToken = (
+  id,
+  role
+) =>
+  jwt.sign(
+    { id, role },
+    process.env.JWT_SECRET ||
+      "secretkey",
+    { expiresIn: "7d" }
+  );
 
-    if (existingUser) {
-      return res.status(400).json({
+/* ================= SIGNUP SEND OTP ================= */
+export const sendSignupOtp =
+  async (req, res) => {
+    try {
+      const {
+        name,
+        phone,
+        email,
+        profilePhoto
+      } = req.body;
+
+      if (
+        !name ||
+        !phone ||
+        !email
+      ) {
+        return res
+          .status(400)
+          .json({
+            message:
+              "All fields required"
+          });
+      }
+
+      const existing =
+        await User.findOne({
+          $or: [
+            { phone },
+            { email }
+          ]
+        });
+
+      if (existing) {
+        return res
+          .status(400)
+          .json({
+            message:
+              "User already exists"
+          });
+      }
+
+      const otp =
+        generateOtp();
+
+      const user =
+        await User.create({
+          name,
+          phone,
+          email,
+          role: "USER",
+          profilePhoto:
+            profilePhoto ||
+            undefined,
+          isPhoneVerified: false,
+          otp: {
+            code: otp,
+            expiresAt:
+              new Date(
+                Date.now() +
+                  5 *
+                    60 *
+                    1000
+              )
+          }
+        });
+
+      console.log(
+        "SIGNUP OTP:",
+        otp
+      );
+
+      res.json({
+        success: true,
         message:
-          "User already exists"
+          "OTP sent"
+      });
+    } catch (error) {
+      res.status(500).json({
+        message:
+          error.message
       });
     }
+  };
 
-    const user = await User.create({
-      name,
-      phone,
-      email,
-      password,
-      role: "USER"
-    });
+/* ================= SIGNUP VERIFY OTP ================= */
+export const verifySignupOtp =
+  async (req, res) => {
+    try {
+      const {
+        phone,
+        otp
+      } = req.body;
 
-    res.status(201).json({
-      success: true,
-      data: user
-    });
-  } catch (error) {
-    res.status(500).json({
-      message: error.message
-    });
-  }
-};
+      const user =
+        await User.findOne({
+          phone
+        });
+
+      if (
+        !user ||
+        !user.otp ||
+        user.otp.code !==
+          otp
+      ) {
+        return res
+          .status(400)
+          .json({
+            message:
+              "Invalid OTP"
+          });
+      }
+
+      user.isPhoneVerified = true;
+      user.otp = undefined;
+
+      await user.save();
+
+      const token =
+        createToken(
+          user._id,
+          user.role
+        );
+
+      res.json({
+        success: true,
+        token,
+        user
+      });
+    } catch (error) {
+      res.status(500).json({
+        message:
+          error.message
+      });
+    }
+  };
 
 /* ================= USER SEND OTP ================= */
-export const sendLoginOtp = async (
-  req,
-  res
-) => {
-  try {
-    const { phone } = req.body;
+export const sendLoginOtp =
+  async (req, res) => {
+    try {
+      const { phone } =
+        req.body;
 
-    let user =
-      await User.findOne({
-        phone
+      const user =
+        await User.findOne({
+          phone,
+          role: "USER"
+        });
+
+      if (!user) {
+        return res
+          .status(404)
+          .json({
+            message:
+              "User not found. Please sign up."
+          });
+      }
+
+      const otp =
+        generateOtp();
+
+      user.otp = {
+        code: otp,
+        expiresAt:
+          new Date(
+            Date.now() +
+              5 *
+                60 *
+                1000
+          )
+      };
+
+      await user.save();
+
+      console.log(
+        "USER OTP:",
+        otp
+      );
+
+      res.json({
+        success: true,
+        message:
+          "OTP sent"
       });
-
-    if (!user) {
-      user = await User.create({
-        name: "New User",
-        phone,
-        email: `${phone}@demo.com`,
-        password: "123456",
-        role: "USER"
+    } catch (error) {
+      res.status(500).json({
+        message:
+          error.message
       });
     }
-
-    const otp = Math.floor(
-  100000 + Math.random() * 900000
-).toString();
-
-user.otp = {
-  code: otp,
-      expiresAt: new Date(
-        Date.now() +
-          5 * 60 * 1000
-      )
-    };
-    console.log("USER OTP:", otp);
-
-    await user.save();
-
-    res.json({
-      success: true,
-      message: "OTP sent"
-    });
-  } catch (error) {
-    res.status(500).json({
-      message: error.message
-    });
-  }
-};
+  };
 
 /* ================= USER VERIFY OTP ================= */
-export const verifyOtp = async (
-  req,
-  res
-) => {
-  try {
-    const { phone, otp } =
-      req.body;
+export const verifyOtp =
+  async (req, res) => {
+    try {
+      const {
+        phone,
+        otp
+      } = req.body;
 
-    const user =
-      await User.findOne({
-        phone
+      const user =
+        await User.findOne({
+          phone,
+          role: "USER"
+        });
+
+      if (
+        !user ||
+        !user.otp ||
+        user.otp.code !==
+          otp
+      ) {
+        return res
+          .status(400)
+          .json({
+            message:
+              "Invalid OTP"
+          });
+      }
+
+      const token =
+        createToken(
+          user._id,
+          user.role
+        );
+
+      res.json({
+        success: true,
+        token,
+        user
       });
-
-    if (
-      !user ||
-      !user.otp ||
-      user.otp.code !== otp
-    ) {
-      return res.status(400).json({
+    } catch (error) {
+      res.status(500).json({
         message:
-          "Invalid OTP"
+          error.message
       });
     }
-
-    const token = jwt.sign(
-      {
-        id: user._id,
-        role: user.role
-      },
-      process.env.JWT_SECRET ||
-        "secretkey",
-      {
-        expiresIn: "7d"
-      }
-    );
-
-    res.json({
-      success: true,
-      token
-    });
-  } catch (error) {
-    res.status(500).json({
-      message: error.message
-    });
-  }
-};
+  };
 
 /* ================= ADMIN SEND OTP ================= */
 export const sendAdminOtp =
@@ -152,26 +276,34 @@ export const sendAdminOtp =
         });
 
       if (!admin) {
-        return res.status(404).json({
-          message:
-            "Admin not found"
-        });
+        return res
+          .status(404)
+          .json({
+            message:
+              "Admin not found"
+          });
       }
 
-     const otp = Math.floor(
-  100000 + Math.random() * 900000
-).toString();
+      const otp =
+        generateOtp();
 
-admin.otp = {
-  code: otp,
-        expiresAt: new Date(
-          Date.now() +
-            5 * 60 * 1000
-        )
+      admin.otp = {
+        code: otp,
+        expiresAt:
+          new Date(
+            Date.now() +
+              5 *
+                60 *
+                1000
+          )
       };
-      console.log("USER OTP:", otp);
 
       await admin.save();
+
+      console.log(
+        "ADMIN OTP:",
+        otp
+      );
 
       res.json({
         success: true,
@@ -206,29 +338,27 @@ export const verifyAdminOtp =
       if (
         !admin ||
         !admin.otp ||
-        admin.otp.code !== otp
+        admin.otp.code !==
+          otp
       ) {
-        return res.status(400).json({
-          message:
-            "Invalid OTP"
-        });
+        return res
+          .status(400)
+          .json({
+            message:
+              "Invalid OTP"
+          });
       }
 
-      const token = jwt.sign(
-        {
-          id: admin._id,
-          role: "ADMIN"
-        },
-        process.env.JWT_SECRET ||
-          "secretkey",
-        {
-          expiresIn: "7d"
-        }
-      );
+      const token =
+        createToken(
+          admin._id,
+          "ADMIN"
+        );
 
       res.json({
         success: true,
-        token
+        token,
+        user: admin
       });
     } catch (error) {
       res.status(500).json({

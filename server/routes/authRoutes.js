@@ -1,21 +1,29 @@
 import express from "express";
 
 import {
-  registerUser,
+  sendSignupOtp,
+  verifySignupOtp,
   sendLoginOtp,
   verifyOtp,
   sendAdminOtp,
   verifyAdminOtp
 } from "../controllers/authController.js";
 
-const router = express.Router();
+const router =
+  express.Router();
 
-/* ================= USER ================= */
+/* ================= USER SIGNUP ================= */
 router.post(
-  "/register",
-  registerUser
+  "/signup/send-otp",
+  sendSignupOtp
 );
 
+router.post(
+  "/signup/verify-otp",
+  verifySignupOtp
+);
+
+/* ================= USER LOGIN ================= */
 router.post(
   "/login/send-otp",
   sendLoginOtp
@@ -26,7 +34,7 @@ router.post(
   verifyOtp
 );
 
-/* ================= ADMIN ================= */
+/* ================= ADMIN LOGIN ================= */
 router.post(
   "/admin/send-otp",
   sendAdminOtp

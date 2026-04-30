@@ -23,9 +23,9 @@ const userSchema = new mongoose.Schema(
       trim: true
     },
 
-    // ⚠️ Optional if OTP only
     password: {
-      type: String
+      type: String,
+      default: null
     },
 
     role: {
@@ -50,21 +50,39 @@ const userSchema = new mongoose.Schema(
       expiresAt: Date
     },
 
-    idType: {
+    profilePhoto: {
       type: String,
-      enum: ["AADHAR", "DL"]
+      default:
+        "https://api.dicebear.com/7.x/avataaars/svg?seed=User"
     },
 
-    idNumber: String,
-    idDocumentUrl: String,
-    profilePhoto: String,
+    idType: {
+      type: String,
+      enum: ["AADHAR", "DL"],
+      default: null
+    },
+
+    idNumber: {
+      type: String,
+      default: null
+    },
+
+    idDocumentUrl: {
+      type: String,
+      default: null
+    },
 
     isKycVerified: {
       type: Boolean,
       default: false
     }
   },
-  { timestamps: true }
+  {
+    timestamps: true
+  }
 );
 
-export default mongoose.model("User", userSchema);
+export default mongoose.model(
+  "User",
+  userSchema
+);

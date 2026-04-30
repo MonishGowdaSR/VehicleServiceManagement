@@ -1,97 +1,169 @@
 import Booking from "../models/Booking.js";
 import {
   createBookingService,
-  updateBookingStatusService,
+  updateBookingStatusService
 } from "../services/bookingService.js";
-
 
 /* ========================= */
 /* CREATE BOOKING */
 /* ========================= */
+export const createBooking =
+  async (req, res) => {
+    try {
+      const payload = {
+        ...req.body
+      };
 
-export const createBooking = async (req, res) => {
-  try {
-    const result = await createBookingService(
-      req.body,
-      req.user.id
-    );
+      /* Damage Image Upload */
+      if (
+        req.file
+      ) {
+        payload.damageImage =
+          req.file.path ||
+          req.file.filename;
+      }
 
-    // ⚠️ Handle slot suggestion cases
-    if (result?.availableSlots) {
-      return res.status(200).json({
-        success: false,
-        message: result.message,
-        availableSlots: result.availableSlots,
-      });
+      const result =
+        await createBookingService(
+          payload,
+          req.user.id
+        );
+
+      /* Slot suggestion case */
+      if (
+        result
+          ?.availableSlots
+      ) {
+        return res
+          .status(200)
+          .json({
+            success:
+              false,
+            message:
+              result.message,
+            availableSlots:
+              result.availableSlots
+          });
+      }
+
+      return res
+        .status(201)
+        .json({
+          success: true,
+          message:
+            "Booking created successfully",
+          data: result
+        });
+    } catch (error) {
+      return res
+        .status(400)
+        .json({
+          success:
+            false,
+          message:
+            error.message
+        });
     }
+  };
 
-    return res.status(201).json({
-      success: true,
-      message: "Booking created successfully",
-      data: result,
-    });
+/* ========================= */
+/* GET MY BOOKINGS */
+/* ========================= */
+export const getMyBookings =
+  async (req, res) => {
+    try {
+      const bookings =
+        await Booking.find(
+          {
+            user:
+              req.user.id,
+            isDeleted:
+              false
+          }
+        )
+          .populate(
+            "vehicle"
+          )
+          .populate(
+            "pickupAgent",
+            "name phone"
+          )
+          .populate(
+            "technician",
+            "name phone"
+          )
+          .sort({
+            createdAt:
+              -1
+          });
 
-  } catch (error) {
-    return res.status(400).json({
-      success: false,
-      message: error.message,
-    });
-  }
-};
-
-
-export const getMyBookings = async (req, res) => {
-  try {
-    const bookings = await Booking.find({
-      user: req.user.id
-    })
-      .populate("vehicle")
-      .sort({ createdAt: -1 });
-
-    res.status(200).json({
-      success: true,
-      data: bookings
-    });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: error.message
-    });
-  }
-};
+      res
+        .status(200)
+        .json({
+          success: true,
+          data: bookings
+        });
+    } catch (error) {
+      res
+        .status(500)
+        .json({
+          success:
+            false,
+          message:
+            error.message
+        });
+    }
+  };
 
 /* ========================= */
 /* UPDATE BOOKING STATUS */
 /* ========================= */
+export const updateBookingStatus =
+  async (req, res) => {
+    try {
+      const { id } =
+        req.params;
 
-export const updateBookingStatus = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const { status } = req.body;
+      const {
+        status
+      } = req.body;
 
-    if (!status) {
-      return res.status(400).json({
-        success: false,
-        message: "Status is required",
-      });
+      if (
+        !status
+      ) {
+        return res
+          .status(400)
+          .json({
+            success:
+              false,
+            message:
+              "Status is required"
+          });
+      }
+
+      const updatedBooking =
+        await updateBookingStatusService(
+          id,
+          status,
+          req.user
+        );
+
+      return res
+        .status(200)
+        .json({
+          success: true,
+          message:
+            "Booking status updated",
+          data: updatedBooking
+        });
+    } catch (error) {
+      return res
+        .status(400)
+        .json({
+          success:
+            false,
+          message:
+            error.message
+        });
     }
-
-    const updatedBooking = await updateBookingStatusService(
-      id,
-      status,
-      req.user
-    );
-
-    return res.status(200).json({
-      success: true,
-      message: "Booking status updated",
-      data: updatedBooking,
-    });
-
-  } catch (error) {
-    return res.status(400).json({
-      success: false,
-      message: error.message,
-    });
-  }
-};
+  };

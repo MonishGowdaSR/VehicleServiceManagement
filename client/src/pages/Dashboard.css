@@ -4,201 +4,228 @@
 
 body {
   margin: 0;
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: Arial, Helvetica,
+    sans-serif;
   background: #f4f7fb;
 }
 
+/* ================= PAGE ================= */
 .dashboard-page {
-  max-width: 1200px;
+  max-width: 1280px;
   margin: auto;
   padding: 24px;
 }
 
-/* Top Bar */
+/* ================= TOPBAR ================= */
 .topbar {
   background: #111827;
-  color: #ffffff;
+  color: white;
   padding: 18px 24px;
-  border-radius: 14px;
+  border-radius: 16px;
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 18px;
   margin-bottom: 24px;
-  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 10px 24px
+    rgba(0, 0, 0, 0.08);
 }
 
-.topbar h1 {
-  margin: 0;
-  font-size: 24px;
-  font-weight: 700;
-}
-
-.top-actions {
+/* ================= PROFILE ================= */
+.profile-box {
   display: flex;
-  gap: 12px;
+  align-items: center;
+  gap: 16px;
 }
 
-.topbar button {
+.profile-img {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  object-fit: cover;
+  background: white;
+  border: 3px solid #2563eb;
+}
+
+.profile-box h2 {
+  margin: 0;
+  font-size: 22px;
+}
+
+.profile-box p {
+  margin: 3px 0;
+  color: #d1d5db;
+  font-size: 14px;
+}
+
+/* ================= BUTTON ================= */
+.logout-btn {
   border: none;
-  padding: 10px 16px;
+  background: #ef4444;
+  color: white;
+  padding: 12px 18px;
   border-radius: 10px;
   cursor: pointer;
   font-weight: 700;
-  transition: 0.2s ease;
 }
 
-.topbar button:hover {
-  transform: translateY(-1px);
+.logout-btn:hover {
+  background: #dc2626;
 }
 
-.top-actions button:first-child {
-  background: #2563eb;
-  color: white;
-}
-
-.logout-btn {
-  background: #ef4444;
-  color: white;
-}
-
-/* Cards */
-.welcome-card,
+/* ================= SECTION CARDS ================= */
 .form-card,
 .vehicles-section {
-  background: #ffffff;
-  border-radius: 14px;
+  background: white;
+  border-radius: 16px;
   padding: 22px;
   margin-bottom: 24px;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
+  box-shadow: 0 8px 24px
+    rgba(0, 0, 0, 0.06);
 }
 
-.welcome-card h2,
 .form-card h3,
 .vehicles-section h3 {
   margin-top: 0;
-  margin-bottom: 14px;
+  margin-bottom: 18px;
+  font-size: 21px;
   color: #111827;
 }
 
-.welcome-card p {
-  margin: 0;
-  color: #6b7280;
-}
-
-/* Forms */
+/* ================= FORMS ================= */
 .form-card form {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  grid-template-columns: repeat(
+    auto-fit,
+    minmax(220px, 1fr)
+  );
   gap: 14px;
 }
 
 .form-card input,
-.form-card select {
-  padding: 12px;
-  border: 1px solid #d1d5db;
+.form-card select,
+.form-card textarea,
+.form-card button {
+  width: 100%;
+  padding: 13px;
   border-radius: 10px;
   font-size: 14px;
+}
+
+.form-card input,
+.form-card select,
+.form-card textarea {
+  border: 1px solid #d1d5db;
   outline: none;
+  background: white;
 }
 
 .form-card input:focus,
-.form-card select:focus {
+.form-card select:focus,
+.form-card textarea:focus {
   border-color: #2563eb;
 }
 
+.form-card textarea {
+  min-height: 110px;
+  resize: vertical;
+  grid-column: 1 / -1;
+}
+
 .form-card button {
+  border: none;
   background: #2563eb;
   color: white;
-  border: none;
-  border-radius: 10px;
-  padding: 12px;
-  cursor: pointer;
   font-weight: 700;
-  transition: 0.2s ease;
+  cursor: pointer;
 }
 
 .form-card button:hover {
   background: #1d4ed8;
 }
 
-/* Vehicles Grid */
+/* ================= LABELS ================= */
+.form-card label {
+  display: block;
+  font-size: 14px;
+  font-weight: 700;
+  color: #111827;
+  margin-bottom: 6px;
+}
+
+/* ================= FILE INPUT ================= */
+.form-card input[type="file"] {
+  padding: 10px;
+  background: white;
+}
+
+/* ================= GRID ================= */
 .vehicle-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  grid-template-columns: repeat(
+    auto-fit,
+    minmax(280px, 1fr)
+  );
   gap: 18px;
 }
 
+/* ================= BOOKING CARD ================= */
 .vehicle-card {
+  background: #fafafa;
   border: 1px solid #e5e7eb;
   border-radius: 14px;
   padding: 18px;
-  background: #fafafa;
-  transition: 0.2s ease;
+  transition: 0.2s;
 }
 
 .vehicle-card:hover {
   transform: translateY(-2px);
-  box-shadow: 0 10px 20px rgba(0,0,0,0.05);
+  box-shadow: 0 10px 20px
+    rgba(0, 0, 0, 0.05);
 }
 
 .vehicle-card h4 {
   margin: 0 0 10px;
   color: #111827;
+  font-size: 18px;
 }
 
 .vehicle-card p {
-  margin: 6px 0;
+  margin: 7px 0;
   color: #374151;
+  font-size: 14px;
+  word-break: break-word;
 }
 
-/* Status */
-.status {
-  display: inline-block;
-  margin-top: 10px;
-  background: #dcfce7;
-  color: #166534;
-  padding: 6px 10px;
-  border-radius: 999px;
-  font-size: 13px;
-  font-weight: 700;
-}
-
-/* Buttons in Cards */
-.card-actions {
-  display: flex;
-  gap: 10px;
-  margin-top: 16px;
-}
-
-.card-actions button {
-  flex: 1;
+/* ================= TRACK BUTTON ================= */
+.vehicle-card button {
+  width: 100%;
   border: none;
-  border-radius: 10px;
-  padding: 10px;
-  cursor: pointer;
-  font-weight: 700;
-  transition: 0.2s ease;
-}
-
-.card-actions button:first-child {
   background: #10b981;
   color: white;
+  padding: 10px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-weight: 700;
+  margin-top: 14px;
 }
 
-.card-actions button:first-child:hover {
+.vehicle-card button:hover {
   background: #059669;
 }
 
-.delete-btn {
-  background: #ef4444;
-  color: white;
+/* ================= PICKUP ADDRESS FULL WIDTH ================= */
+.form-card input[name="houseNo"],
+.form-card input[name="street"],
+.form-card input[name="area"],
+.form-card input[name="landmark"],
+.form-card input[name="city"],
+.form-card input[name="state"],
+.form-card input[name="pincode"] {
+  grid-column: span 1;
 }
 
-.delete-btn:hover {
-  background: #dc2626;
-}
-
-/* Responsive */
+/* ================= RESPONSIVE ================= */
 @media (max-width: 768px) {
   .dashboard-page {
     padding: 16px;
@@ -207,15 +234,14 @@ body {
   .topbar {
     flex-direction: column;
     align-items: flex-start;
-    gap: 14px;
   }
 
-  .top-actions {
+  .profile-box {
     width: 100%;
   }
 
-  .top-actions button {
-    flex: 1;
+  .logout-btn {
+    width: 100%;
   }
 
   .form-card form {
@@ -225,69 +251,8 @@ body {
   .vehicle-grid {
     grid-template-columns: 1fr;
   }
-}
-/* Select styling */
-.form-card select {
-  padding: 12px;
-  border: 1px solid #d1d5db;
-  border-radius: 10px;
-  font-size: 14px;
-  background: white;
-  outline: none;
-}
 
-.form-card select:focus {
-  border-color: #2563eb;
-}
-
-/* Booking cards spacing */
-.vehicle-card p {
-  margin: 6px 0;
-  color: #374151;
-  font-size: 14px;
-}
-
-/* Better section titles */
-.vehicles-section h3,
-.form-card h3 {
-  font-size: 20px;
-  font-weight: 700;
-}
-
-/* Empty state */
-.empty-text {
-  color: #6b7280;
-  font-size: 14px;
-}
-
-/* Status badge wrap fix */
-.status {
-  margin-top: 12px;
-}
-/* Ensure all form controls consistent */
-.form-card input,
-.form-card select,
-.form-card button {
-  width: 100%;
-}
-
-/* Pickup address full width */
-.form-card input::placeholder {
-  color: #9ca3af;
-}
-
-/* Better spacing when extra field appears */
-.form-card form {
-  align-items: stretch;
-}
-
-/* Booking cards long text handling */
-.vehicle-card h4,
-.vehicle-card p {
-  word-break: break-word;
-}
-
-/* Empty states */
-.vehicles-section p {
-  color: #6b7280;
+  .form-card textarea {
+    grid-column: auto;
+  }
 }

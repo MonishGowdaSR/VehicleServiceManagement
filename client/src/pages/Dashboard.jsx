@@ -3,283 +3,292 @@ import { useNavigate } from "react-router-dom";
 import "./Dashboard.css";
 
 function Dashboard() {
-  const [vehicles, setVehicles] =
-    useState([]);
+  const navigate = useNavigate();
+  const token = localStorage.getItem("userToken");
 
-  const [bookings, setBookings] =
-    useState([]);
+  const [profile, setProfile] = useState({
+    name: "Customer",
+    phone: "",
+    email: "",
+    profilePhoto: ""
+  });
 
-  const [loading, setLoading] =
-    useState(true);
+  const [vehicles, setVehicles] = useState([]);
+  const [bookings, setBookings] = useState([]);
 
-  const [form, setForm] =
-    useState({
-      vehicleNumber: "",
-      vehicleType: ""
-    });
+  const [form, setForm] = useState({
+    vehicleNumber: "",
+    vehicleType: "CAR",
+    brand: "",
+    model: "",
+    fuelType: "PETROL",
+    vehiclePhoto: null,
+    licenseDocument: null
+  });
 
-  const [booking, setBooking] =
-    useState({
-      vehicle: "",
-      serviceType:
-        "GENERAL_SERVICE",
-      bookingDate: "",
-      slotKey: "08-09",
-      bookingType: "SELF",
-      pickupAddress: {
-        address: ""
-      }
-    });
+  const [booking, setBooking] = useState({
+    vehicle: "",
+    serviceType: "GENERAL_SERVICE",
+    bookingDate: "",
+    slotKey: "08-09",
+    bookingType: "SELF",
 
-  const token =
-    localStorage.getItem(
-      "userToken"
-    );
+    issueDescription: "",
+    damageImage: null,
 
-  const navigate =
-    useNavigate();
+    pickupAddress: {
+      houseNo: "",
+      street: "",
+      area: "",
+      landmark: "",
+      city: "Bengaluru",
+      state: "Karnataka",
+      pincode: ""
+    }
+  });
 
   useEffect(() => {
+    fetchProfile();
     fetchVehicles();
     fetchBookings();
   }, []);
 
-  /* ================= FETCH VEHICLES ================= */
-  const fetchVehicles =
-    async () => {
-      try {
-        const res =
-          await fetch(
-            "http://localhost:5000/api/vehicles",
-            {
-              headers:
-                {
-                  Authorization: `Bearer ${token}`
-                }
-            }
-          );
+  /* ================= PROFILE ================= */
+  const fetchProfile = () => {
+    const stored =
+      localStorage.getItem("profile");
 
-        const data =
-          await res.json();
+    if (stored) {
+      setProfile(JSON.parse(stored));
+    }
+  };
 
-        setVehicles(
-          Array.isArray(
-            data
-          )
-            ? data
-            : []
-        );
+  /* ================= VEHICLES ================= */
+  const fetchVehicles = async () => {
+    try {
+      const res = await fetch(
+        "http://localhost:5000/api/vehicles",
+        {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        }
+      );
 
-        setLoading(
-          false
-        );
-      } catch (error) {
-        console.log(
-          error
-        );
-      }
-    };
+      const data = await res.json();
+      setVehicles(
+        Array.isArray(data) ? data : []
+      );
+    } catch {}
+  };
 
-  /* ================= FETCH BOOKINGS ================= */
-  const fetchBookings =
-    async () => {
-      try {
-        const res =
-          await fetch(
-            "http://localhost:5000/api/bookings",
-            {
-              headers:
-                {
-                  Authorization: `Bearer ${token}`
-                }
-            }
-          );
+  /* ================= BOOKINGS ================= */
+  const fetchBookings = async () => {
+    try {
+      const res = await fetch(
+        "http://localhost:5000/api/bookings",
+        {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        }
+      );
 
-        const data =
-          await res.json();
+      const data = await res.json();
 
-        setBookings(
-          data.data ||
-            []
-        );
-      } catch (error) {
-        console.log(
-          error
-        );
-      }
-    };
+      setBookings(data.data || []);
+    } catch {}
+  };
 
-  const handleChange = (
-    e
-  ) => {
+  /* ================= VEHICLE FORM ================= */
+  const handleChange = (e) => {
+    const {
+      name,
+      value,
+      files
+    } = e.target;
+
     setForm({
       ...form,
-      [e.target.name]:
-        e.target.value
+      [name]: files
+        ? files[0]
+        : value
     });
   };
 
-  const handleBookingChange =
-    (e) => {
-      setBooking({
-        ...booking,
+  /* ================= BOOKING FORM ================= */
+  const handleBookingChange = (
+    e
+  ) => {
+    const {
+      name,
+      value,
+      files
+    } = e.target;
+
+    setBooking({
+      ...booking,
+      [name]: files
+        ? files[0]
+        : value
+    });
+  };
+
+  const handleAddressChange = (
+    e
+  ) => {
+    setBooking({
+      ...booking,
+      pickupAddress: {
+        ...booking.pickupAddress,
         [e.target.name]:
           e.target.value
-      });
-    };
-
-  const handlePickupAddress =
-    (e) => {
-      setBooking({
-        ...booking,
-        pickupAddress:
-          {
-            address:
-              e.target
-                .value
-          }
-      });
-    };
+      }
+    });
+  };
 
   /* ================= ADD VEHICLE ================= */
-  const handleAdd =
-    async (e) => {
-      e.preventDefault();
+  const handleAdd = async (
+    e
+  ) => {
+    e.preventDefault();
 
-      try {
-        const res =
-          await fetch(
-            "http://localhost:5000/api/vehicles",
-            {
-              method:
-                "POST",
-              headers:
-                {
-                  "Content-Type":
-                    "application/json",
-                  Authorization: `Bearer ${token}`
-                },
-              body: JSON.stringify(
-                form
-              )
-            }
-          );
+    const formData =
+      new FormData();
 
-        const data =
-          await res.json();
-
-        if (res.ok) {
-          alert(
-            "Vehicle added"
-          );
-
-          setForm({
-            vehicleNumber:
-              "",
-            vehicleType:
-              ""
-          });
-
-          fetchVehicles();
-        } else {
-          alert(
-            data.message
-          );
-        }
-      } catch (error) {
-        console.log(
-          error
+    Object.keys(form).forEach(
+      (key) => {
+        formData.append(
+          key,
+          form[key]
         );
       }
-    };
+    );
 
-  /* ================= BOOK SERVICE ================= */
+    const res = await fetch(
+      "http://localhost:5000/api/vehicles",
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`
+        },
+        body: formData
+      }
+    );
+
+    const data =
+      await res.json();
+
+    if (res.ok) {
+      alert(
+        "Vehicle added successfully"
+      );
+
+      fetchVehicles();
+    } else {
+      alert(data.message);
+    }
+  };
+
+  /* ================= CREATE BOOKING ================= */
   const handleBooking =
     async (e) => {
       e.preventDefault();
 
-      try {
-        const res =
-          await fetch(
-            "http://localhost:5000/api/bookings",
-            {
-              method:
-                "POST",
-              headers:
-                {
-                  "Content-Type":
-                    "application/json",
-                  Authorization: `Bearer ${token}`
-                },
-              body: JSON.stringify(
-                booking
-              )
-            }
-          );
+      const formData =
+        new FormData();
 
-        const data =
-          await res.json();
-
-        if (
-          res.ok &&
-          data.success
-        ) {
-          alert(
-            "Booking successful"
-          );
-
-          fetchBookings();
-        } else {
-          alert(
-            data.message
-          );
+      Object.keys(booking).forEach(
+        (key) => {
+          if (
+            key !==
+            "pickupAddress"
+          ) {
+            formData.append(
+              key,
+              booking[key]
+            );
+          }
         }
-      } catch (error) {
-        console.log(
-          error
+      );
+
+      formData.append(
+        "pickupAddress",
+        JSON.stringify(
+          booking.pickupAddress
+        )
+      );
+
+      const res = await fetch(
+        "http://localhost:5000/api/bookings",
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`
+          },
+          body: formData
+        }
+      );
+
+      const data =
+        await res.json();
+
+      if (
+        res.ok &&
+        data.success
+      ) {
+        alert(
+          "Booking successful"
         );
+        fetchBookings();
+      } else {
+        alert(data.message);
       }
     };
 
-  /* ================= USER LOGOUT ================= */
+  /* ================= LOGOUT ================= */
   const logout = () => {
-    localStorage.removeItem(
-      "userToken"
-    );
-
-    localStorage.removeItem(
-      "role"
-    );
-
-    navigate(
-      "/login"
-    );
+    localStorage.clear();
+    navigate("/login");
   };
 
   return (
     <div className="dashboard-page">
+      {/* HEADER */}
       <header className="topbar">
-        <h1>
-          Vehicle Dashboard
-        </h1>
-
-        <div className="top-actions">
-          <button
-            className="logout-btn"
-            onClick={
-              logout
+        <div className="profile-box">
+          <img
+            src={
+              profile.profilePhoto
             }
-          >
-            Logout
-          </button>
+            alt=""
+            className="profile-img"
+          />
+
+          <div>
+            <h2>
+              {profile.name}
+            </h2>
+            <p>
+              {profile.phone}
+            </p>
+            <p>
+              {profile.email}
+            </p>
+          </div>
         </div>
+
+        <button
+          className="logout-btn"
+          onClick={logout}
+        >
+          Logout
+        </button>
       </header>
 
-      {/* Add Vehicle */}
+      {/* ADD VEHICLE */}
       <section className="form-card">
-        <h3>
-          Add Vehicle
-        </h3>
+        <h3>Add Vehicle</h3>
 
         <form
           onSubmit={
@@ -289,26 +298,101 @@ function Dashboard() {
           <input
             name="vehicleNumber"
             placeholder="Vehicle Number"
-            value={
-              form.vehicleNumber
-            }
             onChange={
               handleChange
             }
             required
           />
 
-          <input
+          <select
             name="vehicleType"
-            placeholder="Vehicle Type"
-            value={
-              form.vehicleType
-            }
             onChange={
               handleChange
             }
-            required
+          >
+            <option value="CAR">
+              Car
+            </option>
+            <option value="BIKE">
+              Bike
+            </option>
+            <option value="E_CAR">
+              E-Car
+            </option>
+            <option value="E_BIKE">
+              E-Bike
+            </option>
+            <option value="RICKSHAW">
+              Rickshaw
+            </option>
+            <option value="E_RICKSHAW">
+              E-Rickshaw
+            </option>
+          </select>
+
+          <input
+            name="brand"
+            placeholder="Brand"
+            onChange={
+              handleChange
+            }
           />
+
+          <input
+            name="model"
+            placeholder="Model"
+            onChange={
+              handleChange
+            }
+          />
+
+          <select
+            name="fuelType"
+            onChange={
+              handleChange
+            }
+          >
+            <option value="PETROL">
+              Petrol
+            </option>
+            <option value="DIESEL">
+              Diesel
+            </option>
+            <option value="ELECTRIC">
+              Electric
+            </option>
+            <option value="CNG">
+              CNG
+            </option>
+          </select>
+
+          <div>
+            <label>
+              Vehicle Photo
+            </label>
+            <input
+              type="file"
+              name="vehiclePhoto"
+              accept="image/*"
+              onChange={
+                handleChange
+              }
+            />
+          </div>
+
+          <div>
+            <label>
+              Driving License
+            </label>
+            <input
+              type="file"
+              name="licenseDocument"
+              accept=".jpg,.jpeg,.png,.pdf"
+              onChange={
+                handleChange
+              }
+            />
+          </div>
 
           <button type="submit">
             Add Vehicle
@@ -316,7 +400,7 @@ function Dashboard() {
         </form>
       </section>
 
-      {/* Book Service */}
+      {/* BOOK SERVICE */}
       <section className="form-card">
         <h3>
           Book Service
@@ -329,9 +413,6 @@ function Dashboard() {
         >
           <select
             name="vehicle"
-            value={
-              booking.vehicle
-            }
             onChange={
               handleBookingChange
             }
@@ -344,12 +425,8 @@ function Dashboard() {
             {vehicles.map(
               (v) => (
                 <option
-                  key={
-                    v._id
-                  }
-                  value={
-                    v._id
-                  }
+                  key={v._id}
+                  value={v._id}
                 >
                   {
                     v.vehicleNumber
@@ -361,9 +438,6 @@ function Dashboard() {
 
           <select
             name="serviceType"
-            value={
-              booking.serviceType
-            }
             onChange={
               handleBookingChange
             }
@@ -371,22 +445,23 @@ function Dashboard() {
             <option value="GENERAL_SERVICE">
               General Service
             </option>
-
             <option value="REPAIR">
               Repair
             </option>
-
             <option value="CAR_WASH">
               Car Wash
+            </option>
+            <option value="BATTERY">
+              Battery
+            </option>
+            <option value="PUNCTURE">
+              Puncture
             </option>
           </select>
 
           <input
             type="date"
             name="bookingDate"
-            value={
-              booking.bookingDate
-            }
             onChange={
               handleBookingChange
             }
@@ -394,32 +469,7 @@ function Dashboard() {
           />
 
           <select
-            name="slotKey"
-            value={
-              booking.slotKey
-            }
-            onChange={
-              handleBookingChange
-            }
-          >
-            <option value="08-09">
-              08:00 - 09:00
-            </option>
-
-            <option value="09-10">
-              09:00 - 10:00
-            </option>
-
-            <option value="10-1130">
-              10:00 - 11:30
-            </option>
-          </select>
-
-          <select
             name="bookingType"
-            value={
-              booking.bookingType
-            }
             onChange={
               handleBookingChange
             }
@@ -427,26 +477,97 @@ function Dashboard() {
             <option value="SELF">
               Self Drop
             </option>
-
             <option value="PICKUP">
-              Pickup Needed
+              Pickup
             </option>
           </select>
 
+          <textarea
+            name="issueDescription"
+            placeholder="Describe vehicle issue"
+            onChange={
+              handleBookingChange
+            }
+            required
+          />
+
+          <div>
+            <label>
+              Damage Image
+              (Optional)
+            </label>
+
+            <input
+              type="file"
+              name="damageImage"
+              accept="image/*"
+              onChange={
+                handleBookingChange
+              }
+            />
+          </div>
+
           {booking.bookingType ===
             "PICKUP" && (
-            <input
-              placeholder="Pickup Address"
-              value={
-                booking
-                  .pickupAddress
-                  .address
-              }
-              onChange={
-                handlePickupAddress
-              }
-              required
-            />
+            <>
+              <input
+                name="houseNo"
+                placeholder="House No"
+                onChange={
+                  handleAddressChange
+                }
+              />
+
+              <input
+                name="street"
+                placeholder="Street"
+                onChange={
+                  handleAddressChange
+                }
+              />
+
+              <input
+                name="area"
+                placeholder="Area"
+                onChange={
+                  handleAddressChange
+                }
+              />
+
+              <input
+                name="landmark"
+                placeholder="Landmark"
+                onChange={
+                  handleAddressChange
+                }
+              />
+
+              <input
+                name="city"
+                placeholder="City"
+                defaultValue="Bengaluru"
+                onChange={
+                  handleAddressChange
+                }
+              />
+
+              <input
+                name="state"
+                placeholder="State"
+                defaultValue="Karnataka"
+                onChange={
+                  handleAddressChange
+                }
+              />
+
+              <input
+                name="pincode"
+                placeholder="Pincode"
+                onChange={
+                  handleAddressChange
+                }
+              />
+            </>
           )}
 
           <button type="submit">
@@ -455,30 +576,21 @@ function Dashboard() {
         </form>
       </section>
 
-      {/* My Bookings */}
+      {/* BOOKINGS */}
       <section className="vehicles-section">
         <h3>
           My Bookings
         </h3>
 
-        {loading && (
-          <p>
-            Loading...
-          </p>
-        )}
-
         <div className="vehicle-grid">
           {bookings.map(
             (b) => (
               <div
+                key={b._id}
                 className="vehicle-card"
-                key={
-                  b._id
-                }
               >
                 <h4>
-                  {b
-                    .vehicle
+                  {b.vehicle
                     ?.vehicleNumber}
                 </h4>
 
@@ -489,32 +601,26 @@ function Dashboard() {
                 </p>
 
                 <p>
-                  {new Date(
-                    b.bookingDate
-                  ).toLocaleDateString()}
+                  {b.status}
                 </p>
 
                 <p>
-                  {b.slotKey}
+                  {
+                    b.issueDescription
+                  }
                 </p>
-
-                <span className="status">
-                  {b.status}
-                </span>
 
                 {b.bookingType ===
                   "PICKUP" && (
-                  <div className="card-actions">
-                    <button
-                      onClick={() =>
-                        navigate(
-                          `/track/${b._id}`
-                        )
-                      }
-                    >
-                      Track
-                    </button>
-                  </div>
+                  <button
+                    onClick={() =>
+                      navigate(
+                        `/track/${b._id}`
+                      )
+                    }
+                  >
+                    Track
+                  </button>
                 )}
               </div>
             )
