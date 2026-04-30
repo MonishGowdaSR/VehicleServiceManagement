@@ -1,6 +1,10 @@
 import { BOOKING_STATUS } from "../constants/bookingStatus.js";
 
-export const validateRole = (role, currentStatus, nextStatus) => {
+export const validateRole = (
+  role,
+  currentStatus,
+  nextStatus
+) => {
   const rules = {
     /* ================= SYSTEM ================= */
     SYSTEM: [
@@ -20,26 +24,36 @@ export const validateRole = (role, currentStatus, nextStatus) => {
     /* ================= TECHNICIAN ================= */
     TECHNICIAN: [
       ["PICKUP_STARTED", "IN_PROGRESS"],
-      ["ASSIGNED", "IN_PROGRESS"], // for SELF booking
+      ["ASSIGNED", "IN_PROGRESS"], // SELF booking
       ["IN_PROGRESS", "COMPLETED"]
     ],
 
     /* ================= ADMIN ================= */
     ADMIN: [
-      ["ANY", "ASSIGNED"],
-      ["ANY", "RESCHEDULED"],
+      ["BOOKED", "ASSIGNED"],
+      ["ASSIGNED", "PICKUP_STARTED"],
+      ["PICKUP_STARTED", "IN_PROGRESS"],
+      ["ASSIGNED", "IN_PROGRESS"], // SELF booking
+      ["IN_PROGRESS", "COMPLETED"],
+      ["COMPLETED", "DELIVERED"],
+
       ["ANY", "CANCELLED"],
-      ["ANY", "DELIVERED"]
+      ["ANY", "RESCHEDULED"]
     ]
   };
 
   const allowed = rules[role];
 
-  if (!allowed) throw new Error("Invalid role");
+  if (!allowed) {
+    throw new Error("Invalid role");
+  }
 
-  const isValid = allowed.some(([from, to]) => {
-    return (from === "ANY" || from === currentStatus) && to === nextStatus;
-  });
+  const isValid = allowed.some(
+    ([from, to]) =>
+      (from === "ANY" ||
+        from === currentStatus) &&
+      to === nextStatus
+  );
 
   if (!isValid) {
     throw new Error(

@@ -2,7 +2,10 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "./Login.css";
 
-function Login() {
+function AdminLogin() {
+  const [email, setEmail] =
+    useState("");
+
   const [phone, setPhone] =
     useState("");
 
@@ -12,12 +15,6 @@ function Login() {
   const [step, setStep] =
     useState(1);
 
-  const [loading, setLoading] =
-    useState(false);
-
-  const [msg, setMsg] =
-    useState("");
-
   const navigate =
     useNavigate();
 
@@ -25,12 +22,9 @@ function Login() {
   const sendOtp =
     async () => {
       try {
-        setLoading(true);
-        setMsg("");
-
         const res =
           await fetch(
-            "http://localhost:5000/api/auth/login/send-otp",
+            "http://localhost:5000/api/auth/admin/send-otp",
             {
               method:
                 "POST",
@@ -41,6 +35,7 @@ function Login() {
                 },
               body: JSON.stringify(
                 {
+                  email,
                   phone
                 }
               )
@@ -50,23 +45,17 @@ function Login() {
         const data =
           await res.json();
 
+        alert(
+          data.message
+        );
+
         if (res.ok) {
           setStep(2);
-          setMsg(
-            "OTP sent successfully"
-          );
-        } else {
-          setMsg(
-            data.message ||
-              "Failed to send OTP"
-          );
         }
-      } catch {
-        setMsg(
-          "Server error"
+      } catch (error) {
+        console.log(
+          error
         );
-      } finally {
-        setLoading(false);
       }
     };
 
@@ -74,12 +63,9 @@ function Login() {
   const verifyOtp =
     async () => {
       try {
-        setLoading(true);
-        setMsg("");
-
         const res =
           await fetch(
-            "http://localhost:5000/api/auth/login/verify-otp",
+            "http://localhost:5000/api/auth/admin/verify-otp",
             {
               method:
                 "POST",
@@ -90,6 +76,7 @@ function Login() {
                 },
               body: JSON.stringify(
                 {
+                  email,
                   phone,
                   otp
                 }
@@ -101,37 +88,34 @@ function Login() {
           await res.json();
 
         if (res.ok) {
-          /* clear admin session if exists */
+          /* clear user login if exists */
           localStorage.removeItem(
-            "adminToken"
+            "userToken"
           );
 
-          /* store user session */
+          /* store admin session */
           localStorage.setItem(
-            "userToken",
+            "adminToken",
             data.token
           );
 
           localStorage.setItem(
             "role",
-            "USER"
+            "ADMIN"
           );
 
           navigate(
-            "/dashboard"
+            "/admin"
           );
         } else {
-          setMsg(
-            data.message ||
-              "Invalid OTP"
+          alert(
+            data.message
           );
         }
-      } catch {
-        setMsg(
-          "Server error"
+      } catch (error) {
+        console.log(
+          error
         );
-      } finally {
-        setLoading(false);
       }
     };
 
@@ -139,18 +123,28 @@ function Login() {
     <div className="login-page">
       <div className="login-card">
         <h1>
-          Vehicle Service
+          Admin Login
         </h1>
 
-        <p>
-          Smart maintenance platform
-        </p>
-
-        {step === 1 && (
+        {step === 1 ? (
           <>
             <input
-              type="text"
-              placeholder="Enter phone number"
+              placeholder="Admin Email"
+              value={
+                email
+              }
+              onChange={(
+                e
+              ) =>
+                setEmail(
+                  e.target
+                    .value
+                )
+              }
+            />
+
+            <input
+              placeholder="Phone Number"
               value={
                 phone
               }
@@ -168,21 +162,13 @@ function Login() {
               onClick={
                 sendOtp
               }
-              disabled={
-                loading
-              }
             >
-              {loading
-                ? "Sending..."
-                : "Send OTP"}
+              Send OTP
             </button>
           </>
-        )}
-
-        {step === 2 && (
+        ) : (
           <>
             <input
-              type="text"
               placeholder="Enter OTP"
               value={
                 otp
@@ -201,32 +187,10 @@ function Login() {
               onClick={
                 verifyOtp
               }
-              disabled={
-                loading
-              }
             >
-              {loading
-                ? "Verifying..."
-                : "Verify OTP"}
-            </button>
-
-            <button
-              className="secondary-btn"
-              onClick={() =>
-                setStep(
-                  1
-                )
-              }
-            >
-              Change Number
+              Verify OTP
             </button>
           </>
-        )}
-
-        {msg && (
-          <div className="msg-box">
-            {msg}
-          </div>
         )}
 
         <p
@@ -237,7 +201,7 @@ function Login() {
               "center"
           }}
         >
-          Admin?{" "}
+          Customer?{" "}
           <span
             style={{
               color:
@@ -249,11 +213,11 @@ function Login() {
             }}
             onClick={() =>
               navigate(
-                "/admin-login"
+                "/login"
               )
             }
           >
-            Admin Login
+            User Login
           </span>
         </p>
       </div>
@@ -261,4 +225,4 @@ function Login() {
   );
 }
 
-export default Login;
+export default AdminLogin;

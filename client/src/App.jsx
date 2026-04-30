@@ -1,65 +1,143 @@
-import { Routes, Route, Navigate } from "react-router-dom";
+import {
+  Routes,
+  Route,
+  Navigate
+} from "react-router-dom";
 
 import Login from "./pages/Login";
+import AdminLogin from "./pages/AdminLogin";
 import Dashboard from "./pages/Dashboard";
+import AdminDashboard from "./pages/AdminDashboard";
 import Tracking from "./pages/Tracking";
 import AgentSimulator from "./pages/AgentSimulator";
-import AdminDashboard from "./pages/AdminDashboard";
 
 import "leaflet/dist/leaflet.css";
 
-function ProtectedRoute({ children }) {
-  const token = localStorage.getItem("token");
+/* =========================
+   USER PROTECTED ROUTE
+========================= */
+function UserRoute({ children }) {
+  const token =
+    localStorage.getItem(
+      "userToken"
+    );
 
-  return token ? children : <Navigate to="/" replace />;
+  const role =
+    localStorage.getItem(
+      "role"
+    );
+
+  return token &&
+    role === "USER"
+    ? children
+    : (
+      <Navigate
+        to="/login"
+        replace
+      />
+    );
+}
+
+/* =========================
+   ADMIN PROTECTED ROUTE
+========================= */
+function AdminRoute({
+  children
+}) {
+  const token =
+    localStorage.getItem(
+      "adminToken"
+    );
+
+  const role =
+    localStorage.getItem(
+      "role"
+    );
+
+  return token &&
+    role === "ADMIN"
+    ? children
+    : (
+      <Navigate
+        to="/admin-login"
+        replace
+      />
+    );
 }
 
 function App() {
   return (
     <Routes>
-      {/* Login */}
-      <Route path="/" element={<Login />} />
+      {/* Default */}
+      <Route
+        path="/"
+        element={
+          <Navigate
+            to="/login"
+          />
+        }
+      />
 
-      {/* User Dashboard */}
+      {/* ================= USER LOGIN ================= */}
+      <Route
+        path="/login"
+        element={<Login />}
+      />
+
+      {/* ================= ADMIN LOGIN ================= */}
+      <Route
+        path="/admin-login"
+        element={
+          <AdminLogin />
+        }
+      />
+
+      {/* ================= USER DASHBOARD ================= */}
       <Route
         path="/dashboard"
         element={
-          <ProtectedRoute>
+          <UserRoute>
             <Dashboard />
-          </ProtectedRoute>
+          </UserRoute>
         }
       />
 
-      {/* Tracking */}
-      <Route
-        path="/track/:id"
-        element={
-          <ProtectedRoute>
-            <Tracking />
-          </ProtectedRoute>
-        }
-      />
-
-      {/* Admin Dashboard */}
+      {/* ================= ADMIN DASHBOARD ================= */}
       <Route
         path="/admin"
         element={
-          <ProtectedRoute>
+          <AdminRoute>
             <AdminDashboard />
-          </ProtectedRoute>
+          </AdminRoute>
         }
       />
 
-      {/* Agent Simulator */}
+      {/* ================= TRACKING ================= */}
       <Route
-        path="/agent"
-        element={<AgentSimulator />}
+        path="/track/:id"
+        element={
+          <UserRoute>
+            <Tracking />
+          </UserRoute>
+        }
       />
 
-      {/* Fallback */}
+      {/* ================= AGENT ================= */}
+      <Route
+        path="/agent"
+        element={
+          <AgentSimulator />
+        }
+      />
+
+      {/* ================= FALLBACK ================= */}
       <Route
         path="*"
-        element={<Navigate to="/" replace />}
+        element={
+          <Navigate
+            to="/login"
+          />
+        }
       />
     </Routes>
   );

@@ -3,71 +3,146 @@ import { useNavigate } from "react-router-dom";
 import "./AdminDashboard.css";
 
 function AdminDashboard() {
-  const [bookings, setBookings] = useState([]);
-  const token = localStorage.getItem("token");
-  const navigate = useNavigate();
+  const [bookings, setBookings] =
+    useState([]);
+
+  const token =
+    localStorage.getItem(
+      "adminToken"
+    );
+
+  const navigate =
+    useNavigate();
 
   useEffect(() => {
     fetchBookings();
   }, []);
 
-  const fetchBookings = async () => {
-    const res = await fetch(
-      "http://localhost:5000/api/admin/bookings",
-      {
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
+  const fetchBookings =
+    async () => {
+      try {
+        const res =
+          await fetch(
+            "http://localhost:5000/api/admin/bookings",
+            {
+              headers: {
+                Authorization: `Bearer ${token}`
+              }
+            }
+          );
+
+        const data =
+          await res.json();
+
+        setBookings(
+          data.data || []
+        );
+      } catch (error) {
+        console.log(
+          error
+        );
       }
-    );
+    };
 
-    const data = await res.json();
-    setBookings(data.data || []);
-  };
+  const updateStatus =
+    async (
+      id,
+      status
+    ) => {
+      try {
+        const res =
+          await fetch(
+            `http://localhost:5000/api/bookings/status/${id}`,
+            {
+              method:
+                "PATCH",
+              headers:
+                {
+                  "Content-Type":
+                    "application/json",
+                  Authorization: `Bearer ${token}`
+                },
+              body: JSON.stringify(
+                {
+                  status
+                }
+              )
+            }
+          );
 
-  const updateStatus = async (id, status) => {
-    const res = await fetch(
-      `http://localhost:5000/api/bookings/status/${id}`,
-      {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`
-        },
-        body: JSON.stringify({ status })
+        const data =
+          await res.json();
+
+        alert(
+          data.message ||
+            status
+        );
+
+        fetchBookings();
+      } catch (error) {
+        console.log(
+          error
+        );
       }
-    );
+    };
 
-    const data = await res.json();
+  const deliver =
+    async (id) => {
+      try {
+        const res =
+          await fetch(
+            `http://localhost:5000/api/admin/deliver/${id}`,
+            {
+              method:
+                "PATCH",
+              headers:
+                {
+                  Authorization: `Bearer ${token}`
+                }
+            }
+          );
 
-    alert(data.message || status);
-    fetchBookings();
-  };
+        const data =
+          await res.json();
 
-  const deliver = async (id) => {
-    const res = await fetch(
-      `http://localhost:5000/api/admin/deliver/${id}`,
-      {
-        method: "PATCH",
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
+        alert(
+          data.message ||
+            "Delivered"
+        );
+
+        fetchBookings();
+      } catch (error) {
+        console.log(
+          error
+        );
       }
-    );
+    };
 
-    const data = await res.json();
-
-    alert(data.message || "Delivered");
-    fetchBookings();
-  };
-
+  /* ================= LOGOUT ================= */
   const logout = () => {
-    localStorage.removeItem("token");
-    navigate("/");
+    localStorage.removeItem(
+      "adminToken"
+    );
+
+    localStorage.removeItem(
+      "role"
+    );
+
+    navigate(
+      "/admin-login"
+    );
   };
 
-  const nextAction = (booking) => {
-    switch (booking.status) {
+  const nextAction = (
+    booking
+  ) => {
+    const isSelf =
+      booking.bookingType ===
+      "SELF";
+
+    switch (
+      booking.status
+    ) {
       case "BOOKED":
         return (
           <button
@@ -83,6 +158,23 @@ function AdminDashboard() {
         );
 
       case "ASSIGNED":
+        if (
+          isSelf
+        ) {
+          return (
+            <button
+              onClick={() =>
+                updateStatus(
+                  booking._id,
+                  "IN_PROGRESS"
+                )
+              }
+            >
+              Start Service
+            </button>
+          );
+        }
+
         return (
           <button
             onClick={() =>
@@ -106,7 +198,7 @@ function AdminDashboard() {
               )
             }
           >
-            Start Service
+            Vehicle Reached Garage
           </button>
         );
 
@@ -120,7 +212,7 @@ function AdminDashboard() {
               )
             }
           >
-            Complete
+            Complete Service
           </button>
         );
 
@@ -128,10 +220,12 @@ function AdminDashboard() {
         return (
           <button
             onClick={() =>
-              deliver(booking._id)
+              deliver(
+                booking._id
+              )
             }
           >
-            Deliver
+            Deliver Vehicle
           </button>
         );
 
@@ -143,66 +237,94 @@ function AdminDashboard() {
   return (
     <div className="admin-page">
       <header className="admin-topbar">
-        <h1>Admin Dashboard</h1>
+        <h1>
+          Admin Dashboard
+        </h1>
 
         <button
           className="logout-btn"
-          onClick={logout}
+          onClick={
+            logout
+          }
         >
           Logout
         </button>
       </header>
 
       <section className="admin-section">
-        <h2>All Bookings</h2>
+        <h2>
+          All Bookings
+        </h2>
 
         <div className="booking-grid">
-          {bookings.map((b) => (
-            <div
-              key={b._id}
-              className="booking-card"
-            >
-              <h3>
-                {b.vehicle?.vehicleNumber ||
-                  "No Vehicle"}
-              </h3>
+          {bookings.map(
+            (b) => (
+              <div
+                key={
+                  b._id
+                }
+                className="booking-card"
+              >
+                <h3>
+                  {b
+                    .vehicle
+                    ?.vehicleNumber ||
+                    "No Vehicle"}
+                </h3>
 
-              <p>{b.serviceType}</p>
+                <p>
+                  {
+                    b.serviceType
+                  }
+                </p>
 
-              <p>
-                {new Date(
-                  b.bookingDate
-                ).toLocaleDateString()}
-              </p>
+                <p>
+                  {new Date(
+                    b.bookingDate
+                  ).toLocaleDateString()}
+                </p>
 
-              <p>
-                Type: {b.bookingType}
-              </p>
+                <p>
+                  Type:{" "}
+                  {
+                    b.bookingType
+                  }
+                </p>
 
-              <p>
-                Status:
-                <span className="status">
-                  {b.status}
-                </span>
-              </p>
+                <p>
+                  Status:
+                  <span className="status">
+                    {
+                      b.status
+                    }
+                  </span>
+                </p>
 
-              <p>
-                Pickup Agent:{" "}
-                {b.pickupAgent?.name ||
-                  "Not Assigned"}
-              </p>
+                <p>
+                  Pickup Agent:{" "}
+                  {b.bookingType ===
+                  "SELF"
+                    ? "Not Required"
+                    : b.pickupAgent
+                        ?.name ||
+                      "Not Assigned"}
+                </p>
 
-              <p>
-                Technician:{" "}
-                {b.technician?.name ||
-                  "Not Assigned"}
-              </p>
+                <p>
+                  Technician:{" "}
+                  {b.technician
+                    ?.name ||
+                    "Not Assigned"}
+                </p>
 
-              <div className="actions">
-                {nextAction(b)}
+                <div className="actions">
+                  {nextAction(
+                    b
+                  )}
+                </div>
               </div>
-            </div>
-          ))}
+            )
+          )}
         </div>
       </section>
     </div>

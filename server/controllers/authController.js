@@ -1,43 +1,36 @@
 import User from "../models/User.js";
 import jwt from "jsonwebtoken";
 
-/* ================= REGISTER ================= */
+/* ================= REGISTER USER ================= */
 export const registerUser = async (req, res) => {
   try {
-    const { name, phone, mobile, email, password } = req.body;
+    const { name, phone, email, password } =
+      req.body;
 
-    const userPhone = phone || mobile;
-
-    if (!name || !userPhone || !email || !password) {
-      return res.status(400).json({
-        message: "All fields are required"
+    const existingUser =
+      await User.findOne({
+        $or: [{ phone }, { email }]
       });
-    }
-
-    const existingUser = await User.findOne({
-      $or: [{ email }, { phone: userPhone }]
-    });
 
     if (existingUser) {
       return res.status(400).json({
-        message: "User already exists"
+        message:
+          "User already exists"
       });
     }
 
     const user = await User.create({
       name,
-      phone: userPhone,
+      phone,
       email,
       password,
       role: "USER"
     });
 
-    return res.status(201).json({
+    res.status(201).json({
       success: true,
-      message: "Registered successfully",
       data: user
     });
-
   } catch (error) {
     res.status(500).json({
       message: error.message
@@ -45,49 +38,48 @@ export const registerUser = async (req, res) => {
   }
 };
 
-/* ================= SEND OTP ================= */
-export const sendLoginOtp = async (req, res) => {
+/* ================= USER SEND OTP ================= */
+export const sendLoginOtp = async (
+  req,
+  res
+) => {
   try {
-    const { mobile, phone } = req.body;
+    const { phone } = req.body;
 
-    const userPhone = mobile || phone;
-
-    if (!userPhone) {
-      return res.status(400).json({
-        message: "Phone required"
+    let user =
+      await User.findOne({
+        phone
       });
-    }
 
-    let user = await User.findOne({ phone: userPhone });
-
-    /* AUTO REGISTER NEW USER */
     if (!user) {
       user = await User.create({
         name: "New User",
-        phone: userPhone,
-        email: `${userPhone}@demo.com`,
+        phone,
+        email: `${phone}@demo.com`,
         password: "123456",
         role: "USER"
       });
     }
 
-    //const otp = "123456"; // fixed OTP for demo
-    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    const otp = Math.floor(
+  100000 + Math.random() * 900000
+).toString();
 
-    user.otp = {
-      code: otp,
-      expiresAt: new Date(Date.now() + 5 * 60 * 1000)
+user.otp = {
+  code: otp,
+      expiresAt: new Date(
+        Date.now() +
+          5 * 60 * 1000
+      )
     };
+    console.log("USER OTP:", otp);
 
     await user.save();
 
-    console.log("OTP:", otp);
-
-    return res.json({
+    res.json({
       success: true,
       message: "OTP sent"
     });
-
   } catch (error) {
     res.status(500).json({
       message: error.message
@@ -95,52 +87,153 @@ export const sendLoginOtp = async (req, res) => {
   }
 };
 
-/* ================= VERIFY OTP ================= */
-export const verifyOtp = async (req, res) => {
+/* ================= USER VERIFY OTP ================= */
+export const verifyOtp = async (
+  req,
+  res
+) => {
   try {
-    const { mobile, phone, otp } = req.body;
+    const { phone, otp } =
+      req.body;
 
-    const userPhone = mobile || phone;
-
-    const user = await User.findOne({ phone: userPhone });
-
-    if (!user || !user.otp) {
-      return res.status(400).json({
-        message: "Invalid request"
+    const user =
+      await User.findOne({
+        phone
       });
-    }
 
     if (
-      user.otp.code !== otp ||
-      user.otp.expiresAt < new Date()
+      !user ||
+      !user.otp ||
+      user.otp.code !== otp
     ) {
       return res.status(400).json({
-        message: "Invalid OTP"
+        message:
+          "Invalid OTP"
       });
     }
-
-    user.isPhoneVerified = true;
-    user.otp = undefined;
-
-    await user.save();
 
     const token = jwt.sign(
       {
         id: user._id,
         role: user.role
       },
-      process.env.JWT_SECRET || "secretkey",
-      { expiresIn: "7d" }
+      process.env.JWT_SECRET ||
+        "secretkey",
+      {
+        expiresIn: "7d"
+      }
     );
 
-    return res.json({
+    res.json({
       success: true,
       token
     });
-
   } catch (error) {
     res.status(500).json({
       message: error.message
     });
   }
 };
+
+/* ================= ADMIN SEND OTP ================= */
+export const sendAdminOtp =
+  async (req, res) => {
+    try {
+      const {
+        email,
+        phone
+      } = req.body;
+
+      const admin =
+        await User.findOne({
+          email,
+          phone,
+          role: "ADMIN"
+        });
+
+      if (!admin) {
+        return res.status(404).json({
+          message:
+            "Admin not found"
+        });
+      }
+
+     const otp = Math.floor(
+  100000 + Math.random() * 900000
+).toString();
+
+admin.otp = {
+  code: otp,
+        expiresAt: new Date(
+          Date.now() +
+            5 * 60 * 1000
+        )
+      };
+      console.log("USER OTP:", otp);
+
+      await admin.save();
+
+      res.json({
+        success: true,
+        message:
+          "Admin OTP sent"
+      });
+    } catch (error) {
+      res.status(500).json({
+        message:
+          error.message
+      });
+    }
+  };
+
+/* ================= ADMIN VERIFY OTP ================= */
+export const verifyAdminOtp =
+  async (req, res) => {
+    try {
+      const {
+        email,
+        phone,
+        otp
+      } = req.body;
+
+      const admin =
+        await User.findOne({
+          email,
+          phone,
+          role: "ADMIN"
+        });
+
+      if (
+        !admin ||
+        !admin.otp ||
+        admin.otp.code !== otp
+      ) {
+        return res.status(400).json({
+          message:
+            "Invalid OTP"
+        });
+      }
+
+      const token = jwt.sign(
+        {
+          id: admin._id,
+          role: "ADMIN"
+        },
+        process.env.JWT_SECRET ||
+          "secretkey",
+        {
+          expiresIn: "7d"
+        }
+      );
+
+      res.json({
+        success: true,
+        token
+      });
+    } catch (error) {
+      res.status(500).json({
+        message:
+          error.message
+      });
+    }
+  };
