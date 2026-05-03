@@ -6,16 +6,98 @@ import { validateTransition } from "../utils/transitionValidator.js";
 import { validateRole } from "../utils/roleGuard.js";
 import { getLeastBusyStaff } from "./assignmentService.js";
 
-/* ================= HELPER ================= */
-const getSlotDetails = (
-  slotKey
-) => {
-  return TIME_SLOTS.find(
-    (s) => s.key === slotKey
-  );
+/* ======================================================
+   TRACKING SIMULATION MEMORY
+====================================================== */
+const activeTrips = {};
+
+/* GARAGE LOCATION */
+const GARAGE = {
+  lat: 12.9352,
+  lng: 77.6245
 };
 
-/* ================= AVAILABLE SLOTS ================= */
+/* DEFAULT CUSTOMER */
+const DEFAULT_CUSTOMER = {
+  lat: 12.9716,
+  lng: 77.5946
+};
+
+/* ======================================================
+   HELPER
+====================================================== */
+const getSlotDetails = (slotKey) => {
+  return TIME_SLOTS.find((s) => s.key === slotKey);
+};
+
+const moveStep = (start, end, step, total) => {
+  return {
+    lat: start.lat + ((end.lat - start.lat) * step) / total,
+    lng: start.lng + ((end.lng - start.lng) * step) / total
+  };
+};
+
+/* ======================================================
+   LIVE MOVEMENT SIMULATOR
+====================================================== */
+const startTrip = async (
+  bookingId,
+  from,
+  to
+) => {
+  if (activeTrips[bookingId]) {
+    clearInterval(activeTrips[bookingId]);
+  }
+
+  let step = 0;
+  const total = 20;
+
+  activeTrips[bookingId] =
+    setInterval(async () => {
+      step++;
+
+      const location =
+        moveStep(
+          from,
+          to,
+          step,
+          total
+        );
+
+      await Booking.findByIdAndUpdate(
+        bookingId,
+        {
+          "liveTracking.isActive":
+            true,
+          "liveTracking.currentLocation":
+            {
+              lat:
+                location.lat,
+              lng:
+                location.lng,
+              updatedAt:
+                new Date()
+            }
+        }
+      );
+
+      if (step >= total) {
+        clearInterval(
+          activeTrips[
+            bookingId
+          ]
+        );
+
+        delete activeTrips[
+          bookingId
+        ];
+      }
+    }, 2000); // every 2 sec
+};
+
+/* ======================================================
+   AVAILABLE SLOTS
+====================================================== */
 const getAvailableSlots =
   async (
     bookingDate
@@ -23,7 +105,8 @@ const getAvailableSlots =
     const pickupAgents =
       await Staff.countDocuments(
         {
-          role: "PICKUP_AGENT",
+          role:
+            "PICKUP_AGENT",
           isAvailable:
             true
         }
@@ -32,7 +115,8 @@ const getAvailableSlots =
     const technicians =
       await Staff.countDocuments(
         {
-          role: "TECHNICIAN",
+          role:
+            "TECHNICIAN",
           isAvailable:
             true
         }
@@ -74,7 +158,9 @@ const getAvailableSlots =
     return availableSlots;
   };
 
-/* ================= CREATE BOOKING ================= */
+/* ======================================================
+   CREATE BOOKING
+====================================================== */
 export const createBookingService =
   async (
     data,
@@ -92,7 +178,6 @@ export const createBookingService =
       damageImage
     } = data;
 
-    /* ================= FIX JSON STRING ================= */
     if (
       typeof pickupAddress ===
       "string"
@@ -113,111 +198,11 @@ export const createBookingService =
         slotKey
       );
 
-    if (!slot) {
+    if (!slot)
       throw new Error(
         "Invalid time slot"
       );
-    }
 
-    /* ================= PAST DATE ================= */
-    const today =
-      new Date()
-        .toISOString()
-        .split("T")[0];
-
-    const selectedDate =
-      new Date(
-        bookingDate
-      )
-        .toISOString()
-        .split("T")[0];
-
-    if (
-      selectedDate ===
-      today
-    ) {
-      const currentHour =
-        new Date().getHours();
-
-      const slotHour =
-        parseInt(
-          slot.start.split(
-            ":"
-          )[0]
-        );
-
-      if (
-        slotHour <=
-        currentHour
-      ) {
-        return {
-          message:
-            "Selected time passed",
-          availableSlots:
-            await getAvailableSlots(
-              bookingDate
-            )
-        };
-      }
-    }
-
-    /* ================= PICKUP VALIDATION ================= */
-    if (
-      bookingType ===
-      "PICKUP"
-    ) {
-      if (
-        !pickupAddress
-          ?.houseNo ||
-        !pickupAddress
-          ?.street ||
-        !pickupAddress
-          ?.area ||
-        !pickupAddress
-          ?.city ||
-        !pickupAddress
-          ?.state ||
-        !pickupAddress
-          ?.pincode
-      ) {
-        throw new Error(
-          "Pickup address required"
-        );
-      }
-    }
-
-    /* ================= ISSUE DESCRIPTION ================= */
-    if (
-      !issueDescription
-    ) {
-      throw new Error(
-        "Issue description required"
-      );
-    }
-
-    /* ================= DUPLICATE ================= */
-    const duplicate =
-      await Booking.findOne(
-        {
-          vehicle,
-          bookingDate,
-          slotKey,
-          status: {
-            $ne:
-              BOOKING_STATUS.CANCELLED
-          }
-        }
-      );
-
-    if (
-      duplicate
-    ) {
-      throw new Error(
-        "Duplicate booking"
-      );
-    }
-
-    /* ================= SLOT CHECK ================= */
     const availableSlots =
       await getAvailableSlots(
         bookingDate
@@ -235,7 +220,6 @@ export const createBookingService =
       };
     }
 
-    /* ================= CREATE ================= */
     const booking =
       await Booking.create(
         {
@@ -244,23 +228,19 @@ export const createBookingService =
           serviceType,
           bookingDate,
           slotKey,
-
           timeSlot: {
             start:
               slot.start,
             end:
               slot.end
           },
-
           bookingType,
           pickupAddress,
           instructions,
           issueDescription,
           damageImage,
-
           status:
             BOOKING_STATUS.BOOKED,
-
           statusTimeline:
             [
               {
@@ -280,7 +260,9 @@ export const createBookingService =
     return booking;
   };
 
-/* ================= UPDATE STATUS ================= */
+/* ======================================================
+   UPDATE STATUS + TRACKING
+====================================================== */
 export const updateBookingStatusService =
   async (
     bookingId,
@@ -300,7 +282,7 @@ export const updateBookingStatusService =
     const currentStatus =
       booking.status;
 
-    let roleToUse =
+    const roleToUse =
       user?.role ||
       "SYSTEM";
 
@@ -316,6 +298,7 @@ export const updateBookingStatusService =
       nextStatus
     );
 
+    /* ASSIGN STAFF */
     if (
       nextStatus ===
         BOOKING_STATUS.ASSIGNED &&
@@ -354,6 +337,82 @@ export const updateBookingStatusService =
         booking.technician =
           technician._id;
       }
+    }
+
+    /* PICKUP STARTED */
+    if (
+      nextStatus ===
+      BOOKING_STATUS.PICKUP_STARTED
+    ) {
+      const customer =
+        booking.pickupAddress
+          ?.lat &&
+        booking.pickupAddress
+          ?.lng
+          ? {
+              lat:
+                booking
+                  .pickupAddress
+                  .lat,
+              lng:
+                booking
+                  .pickupAddress
+                  .lng
+            }
+          : DEFAULT_CUSTOMER;
+
+      booking.liveTracking =
+        {
+          isActive: true,
+          currentLocation:
+            GARAGE
+        };
+
+      await startTrip(
+        booking._id,
+        GARAGE,
+        customer
+      );
+    }
+
+    /* VEHICLE REACHED GARAGE */
+    if (
+      nextStatus ===
+      BOOKING_STATUS.IN_PROGRESS &&
+      booking.bookingType ===
+        "PICKUP"
+    ) {
+      const customer =
+        booking.pickupAddress
+          ?.lat &&
+        booking.pickupAddress
+          ?.lng
+          ? {
+              lat:
+                booking
+                  .pickupAddress
+                  .lat,
+              lng:
+                booking
+                  .pickupAddress
+                  .lng
+            }
+          : DEFAULT_CUSTOMER;
+
+      await startTrip(
+        booking._id,
+        customer,
+        GARAGE
+      );
+    }
+
+    /* SERVICE COMPLETED */
+    if (
+      nextStatus ===
+      BOOKING_STATUS.COMPLETED
+    ) {
+      booking.liveTracking.isActive =
+        false;
     }
 
     booking.status =

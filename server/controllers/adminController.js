@@ -3,6 +3,123 @@ import { validateTransition } from "../utils/transitionValidator.js";
 import { validateRole } from "../utils/roleGuard.js";
 import { BOOKING_STATUS } from "../constants/bookingStatus.js";
 
+/* ==================================================
+   DELIVERY SIMULATOR
+================================================== */
+
+const GARAGE = {
+  lat: 12.9352,
+  lng: 77.6245
+};
+
+const DEFAULT_CUSTOMER = {
+  lat: 12.9716,
+  lng: 77.5946
+};
+
+const activeTrips = {};
+
+const moveStep = (
+  start,
+  end,
+  step,
+  total
+) => {
+  return {
+    lat:
+      start.lat +
+      ((end.lat - start.lat) *
+        step) /
+        total,
+
+    lng:
+      start.lng +
+      ((end.lng - start.lng) *
+        step) /
+        total
+  };
+};
+
+const startDeliveryTrip =
+  async (
+    bookingId,
+    from,
+    to
+  ) => {
+    if (
+      activeTrips[
+        bookingId
+      ]
+    ) {
+      clearInterval(
+        activeTrips[
+          bookingId
+        ]
+      );
+    }
+
+    let step = 0;
+    const total = 20;
+
+    activeTrips[
+      bookingId
+    ] = setInterval(
+      async () => {
+        step++;
+
+        const location =
+          moveStep(
+            from,
+            to,
+            step,
+            total
+          );
+
+        await Booking.findByIdAndUpdate(
+          bookingId,
+          {
+            "liveTracking.isActive":
+              true,
+
+            "liveTracking.currentLocation":
+              {
+                lat:
+                  location.lat,
+                lng:
+                  location.lng,
+                updatedAt:
+                  new Date()
+              }
+          }
+        );
+
+        if (
+          step >=
+          total
+        ) {
+          clearInterval(
+            activeTrips[
+              bookingId
+            ]
+          );
+
+          delete activeTrips[
+            bookingId
+          ];
+
+          await Booking.findByIdAndUpdate(
+            bookingId,
+            {
+              "liveTracking.isActive":
+                false
+            }
+          );
+        }
+      },
+      2000
+    );
+  };
+
 /* ===============================
    GET ALL BOOKINGS
 ================================= */
@@ -11,29 +128,22 @@ export const getAllBookings =
     try {
       const bookings =
         await Booking.find()
-          /* USER DATA */
           .populate(
             "user",
             "name phone email profilePhoto"
           )
-
-          /* VEHICLE DATA */
           .populate(
             "vehicle",
             "vehicleNumber vehicleType brand model image vehiclePhoto"
           )
-
-          /* STAFF */
           .populate(
             "pickupAgent",
             "name phone"
           )
-
           .populate(
             "technician",
             "name phone"
           )
-
           .sort({
             createdAt:
               -1
@@ -96,6 +206,25 @@ export const deliverVehicle =
         BOOKING_STATUS.DELIVERED
       );
 
+      const customer =
+        booking
+          .pickupAddress
+          ?.lat &&
+        booking
+          .pickupAddress
+          ?.lng
+          ? {
+              lat:
+                booking
+                  .pickupAddress
+                  .lat,
+              lng:
+                booking
+                  .pickupAddress
+                  .lng
+            }
+          : DEFAULT_CUSTOMER;
+
       booking.status =
         BOOKING_STATUS.DELIVERED;
 
@@ -115,10 +244,25 @@ export const deliverVehicle =
         }
       );
 
+      booking.liveTracking =
+        {
+          isActive: true,
+          currentLocation:
+            GARAGE
+        };
+
       await booking.save();
+
+      await startDeliveryTrip(
+        booking._id,
+        GARAGE,
+        customer
+      );
 
       res.json({
         success: true,
+        message:
+          "Vehicle out for delivery",
         data: booking
       });
     } catch (error) {
