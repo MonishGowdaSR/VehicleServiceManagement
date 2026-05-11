@@ -2,6 +2,7 @@ import User from "../models/User.js";
 import jwt from "jsonwebtoken";
 
 /* ================= HELPERS ================= */
+
 const generateOtp = () =>
   Math.floor(
     100000 +
@@ -19,7 +20,22 @@ const createToken = (
     { expiresIn: "7d" }
   );
 
+const validPhone = (
+  phone
+) =>
+  /^[9876]\d{9}$/.test(
+    phone
+  );
+
+const validGmail = (
+  email
+) =>
+  /^[a-zA-Z0-9._%+-]+@gmail\.com$/.test(
+    email
+  );
+
 /* ================= SIGNUP SEND OTP ================= */
+
 export const sendSignupOtp =
   async (req, res) => {
     try {
@@ -43,15 +59,49 @@ export const sendSignupOtp =
           });
       }
 
-      const existing =
-        await User.findOne({
-          $or: [
-            { phone },
-            { email }
-          ]
-        });
+      if (
+        !validPhone(
+          phone
+        )
+      ) {
+        return res
+          .status(400)
+          .json({
+            message:
+              "Invalid phone number"
+          });
+      }
 
-      if (existing) {
+      if (
+        !validGmail(
+          email
+        )
+      ) {
+        return res
+          .status(400)
+          .json({
+            message:
+              "Only valid Gmail allowed"
+          });
+      }
+
+      const existing =
+        await User.findOne(
+          {
+            $or: [
+              {
+                phone
+              },
+              {
+                email
+              }
+            ]
+          }
+        );
+
+      if (
+        existing
+      ) {
         return res
           .status(400)
           .json({
@@ -63,27 +113,27 @@ export const sendSignupOtp =
       const otp =
         generateOtp();
 
-      const user =
-        await User.create({
-          name,
-          phone,
-          email,
-          role: "USER",
-          profilePhoto:
-            profilePhoto ||
-            undefined,
-          isPhoneVerified: false,
-          otp: {
-            code: otp,
-            expiresAt:
-              new Date(
-                Date.now() +
-                  5 *
-                    60 *
-                    1000
-              )
-          }
-        });
+      await User.create({
+        name,
+        phone,
+        email,
+        role: "USER",
+        profilePhoto:
+          profilePhoto ||
+          undefined,
+        isPhoneVerified:
+          false,
+        otp: {
+          code: otp,
+          expiresAt:
+            new Date(
+              Date.now() +
+                5 *
+                  60 *
+                  1000
+            )
+        }
+      });
 
       console.log(
         "SIGNUP OTP:",
@@ -103,7 +153,8 @@ export const sendSignupOtp =
     }
   };
 
-/* ================= SIGNUP VERIFY OTP ================= */
+/* ================= SIGNUP VERIFY ================= */
+
 export const verifySignupOtp =
   async (req, res) => {
     try {
@@ -113,9 +164,11 @@ export const verifySignupOtp =
       } = req.body;
 
       const user =
-        await User.findOne({
-          phone
-        });
+        await User.findOne(
+          {
+            phone
+          }
+        );
 
       if (
         !user ||
@@ -131,8 +184,11 @@ export const verifySignupOtp =
           });
       }
 
-      user.isPhoneVerified = true;
-      user.otp = undefined;
+      user.isPhoneVerified =
+        true;
+
+      user.otp =
+        undefined;
 
       await user.save();
 
@@ -155,25 +211,44 @@ export const verifySignupOtp =
     }
   };
 
-/* ================= USER SEND OTP ================= */
+/* ================= LOGIN SEND OTP ================= */
+
 export const sendLoginOtp =
   async (req, res) => {
     try {
-      const { phone } =
-        req.body;
+      const {
+        phone
+      } = req.body;
+
+      if (
+        !validPhone(
+          phone
+        )
+      ) {
+        return res
+          .status(400)
+          .json({
+            message:
+              "Invalid phone number"
+          });
+      }
 
       const user =
-        await User.findOne({
-          phone,
-          role: "USER"
-        });
+        await User.findOne(
+          {
+            phone,
+            role: "USER"
+          }
+        );
 
-      if (!user) {
+      if (
+        !user
+      ) {
         return res
           .status(404)
           .json({
             message:
-              "User not found. Please sign up."
+              "User not found"
           });
       }
 
@@ -211,7 +286,8 @@ export const sendLoginOtp =
     }
   };
 
-/* ================= USER VERIFY OTP ================= */
+/* ================= LOGIN VERIFY ================= */
+
 export const verifyOtp =
   async (req, res) => {
     try {
@@ -221,10 +297,12 @@ export const verifyOtp =
       } = req.body;
 
       const user =
-        await User.findOne({
-          phone,
-          role: "USER"
-        });
+        await User.findOne(
+          {
+            phone,
+            role: "USER"
+          }
+        );
 
       if (
         !user ||
@@ -260,6 +338,7 @@ export const verifyOtp =
   };
 
 /* ================= ADMIN SEND OTP ================= */
+
 export const sendAdminOtp =
   async (req, res) => {
     try {
@@ -268,14 +347,34 @@ export const sendAdminOtp =
         phone
       } = req.body;
 
-      const admin =
-        await User.findOne({
-          email,
-          phone,
-          role: "ADMIN"
-        });
+      if (
+        !validPhone(
+          phone
+        ) ||
+        !validGmail(
+          email
+        )
+      ) {
+        return res
+          .status(400)
+          .json({
+            message:
+              "Invalid credentials"
+          });
+      }
 
-      if (!admin) {
+      const admin =
+        await User.findOne(
+          {
+            email,
+            phone,
+            role: "ADMIN"
+          }
+        );
+
+      if (
+        !admin
+      ) {
         return res
           .status(404)
           .json({
@@ -308,7 +407,7 @@ export const sendAdminOtp =
       res.json({
         success: true,
         message:
-          "Admin OTP sent"
+          "OTP sent"
       });
     } catch (error) {
       res.status(500).json({
@@ -318,7 +417,8 @@ export const sendAdminOtp =
     }
   };
 
-/* ================= ADMIN VERIFY OTP ================= */
+/* ================= ADMIN VERIFY ================= */
+
 export const verifyAdminOtp =
   async (req, res) => {
     try {
@@ -329,11 +429,13 @@ export const verifyAdminOtp =
       } = req.body;
 
       const admin =
-        await User.findOne({
-          email,
-          phone,
-          role: "ADMIN"
-        });
+        await User.findOne(
+          {
+            email,
+            phone,
+            role: "ADMIN"
+          }
+        );
 
       if (
         !admin ||

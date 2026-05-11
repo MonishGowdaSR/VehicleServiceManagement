@@ -27,11 +27,35 @@ export const addVehicle =
           .status(400)
           .json({
             message:
-              "Vehicle number and type are required"
+              "Vehicle number and type required"
           });
       }
 
-      /* Normalize */
+      /* Mandatory Uploads */
+      if (
+        !req.files
+          ?.vehiclePhoto?.[0]
+      ) {
+        return res
+          .status(400)
+          .json({
+            message:
+              "Vehicle photo is required"
+          });
+      }
+
+      if (
+        !req.files
+          ?.licenseDocument?.[0]
+      ) {
+        return res
+          .status(400)
+          .json({
+            message:
+              "Driving license is required"
+          });
+      }
+
       vehicleNumber =
         normalizeVehicleNumber(
           vehicleNumber
@@ -52,21 +76,19 @@ export const addVehicle =
 
       const vehiclePhoto =
         req.files
-          ?.vehiclePhoto?.[0]
-          ?.path ||
+          .vehiclePhoto[0]
+          .path ||
         req.files
-          ?.vehiclePhoto?.[0]
-          ?.filename ||
-        null;
+          .vehiclePhoto[0]
+          .filename;
 
       const licenseDocument =
         req.files
-          ?.licenseDocument?.[0]
-          ?.path ||
+          .licenseDocument[0]
+          .path ||
         req.files
-          ?.licenseDocument?.[0]
-          ?.filename ||
-        null;
+          .licenseDocument[0]
+          .filename;
 
       const vehicle =
         await Vehicle.create(
@@ -114,21 +136,21 @@ export const addVehicle =
     }
   };
 
-/* ================= GET USER VEHICLES ================= */
+/* ================= GET VEHICLES ================= */
 export const getVehicles =
   async (req, res) => {
     try {
-      const userId =
-        req.user.id;
-
       const vehicles =
         await Vehicle.find(
           {
-            user: userId,
-            isDeleted: false
+            user:
+              req.user.id,
+            isDeleted:
+              false
           }
         ).sort({
-          createdAt: -1
+          createdAt:
+            -1
         });
 
       res.json(
@@ -148,11 +170,29 @@ export const getVehicles =
 export const updateVehicle =
   async (req, res) => {
     try {
-      const userId =
-        req.user.id;
+      const {
+        id
+      } = req.params;
 
-      const { id } =
-        req.params;
+      const vehicle =
+        await Vehicle.findOne(
+          {
+            _id: id,
+            user:
+              req.user.id
+          }
+        );
+
+      if (
+        !vehicle
+      ) {
+        return res
+          .status(404)
+          .json({
+            message:
+              "Vehicle not found"
+          });
+      }
 
       let {
         vehicleNumber,
@@ -161,23 +201,6 @@ export const updateVehicle =
         model,
         fuelType
       } = req.body;
-
-      const vehicle =
-        await Vehicle.findOne(
-          {
-            _id: id,
-            user: userId
-          }
-        );
-
-      if (!vehicle) {
-        return res
-          .status(404)
-          .json({
-            message:
-              "Vehicle not found"
-          });
-      }
 
       if (
         vehicleNumber
@@ -227,10 +250,7 @@ export const updateVehicle =
         vehicle.vehiclePhoto =
           req.files
             .vehiclePhoto[0]
-            .path ||
-          req.files
-            .vehiclePhoto[0]
-            .filename;
+            .path;
       }
 
       if (
@@ -240,18 +260,14 @@ export const updateVehicle =
         vehicle.licenseDocument =
           req.files
             .licenseDocument[0]
-            .path ||
-          req.files
-            .licenseDocument[0]
-            .filename;
+            .path;
       }
 
-      const updated =
-        await vehicle.save();
+      await vehicle.save();
 
       res.json({
         success: true,
-        data: updated
+        data: vehicle
       });
     } catch (error) {
       res
@@ -263,29 +279,30 @@ export const updateVehicle =
     }
   };
 
-/* ================= DELETE VEHICLE ================= */
+/* ================= DELETE ================= */
 export const deleteVehicle =
   async (req, res) => {
     try {
-      const userId =
-        req.user.id;
-
       const vehicle =
         await Vehicle.findOneAndUpdate(
           {
-            _id: req
-              .params.id,
-            user: userId
+            _id:
+              req.params.id,
+            user:
+              req.user.id
           },
           {
-            isDeleted: true
+            isDeleted:
+              true
           },
           {
             new: true
           }
         );
 
-      if (!vehicle) {
+      if (
+        !vehicle
+      ) {
         return res
           .status(404)
           .json({

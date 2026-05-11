@@ -193,6 +193,61 @@ export const createBookingService =
       }
     }
 
+    /* =========================================
+   PICKUP ADDRESS VALIDATION
+========================================= */
+
+if (bookingType === "PICKUP") {
+
+  if (
+    !pickupAddress ||
+    !pickupAddress.houseNo ||
+    !pickupAddress.street ||
+    !pickupAddress.area ||
+    !pickupAddress.city ||
+    !pickupAddress.state ||
+    !pickupAddress.pincode
+  ) {
+    throw new Error(
+      "All pickup address fields are required"
+    );
+  }
+
+  const pincodeRegex = /^\d{6}$/;
+
+  if (
+    !pincodeRegex.test(
+      pickupAddress.pincode
+    )
+  ) {
+    throw new Error(
+      "Pincode must be exactly 6 digits"
+    );
+  }
+}
+
+/* =========================================
+   PREVENT DUPLICATE BOOKINGS
+========================================= */
+
+const existingBooking =
+  await Booking.findOne({
+    vehicle,
+    bookingDate,
+    status: {
+      $nin: [
+        BOOKING_STATUS.CANCELLED,
+        BOOKING_STATUS.DELIVERED
+      ]
+    }
+  });
+
+if (existingBooking) {
+  throw new Error(
+    "Vehicle already has a booking on this date"
+  );
+}
+
     const slot =
       getSlotDetails(
         slotKey

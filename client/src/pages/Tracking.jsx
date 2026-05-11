@@ -4,9 +4,11 @@ import {
   MapContainer,
   TileLayer,
   Marker,
-  Polyline,
+  Tooltip,
   useMap
 } from "react-leaflet";
+import L from "leaflet";
+import "leaflet/dist/leaflet.css";
 
 function Recenter({ position }) {
   const map = useMap();
@@ -18,11 +20,31 @@ function Recenter({ position }) {
   return null;
 }
 
+const agentIcon = L.divIcon({
+  html: `<div style="font-size:34px;">🛵</div>`,
+  className: "",
+  iconSize: [35, 35],
+  iconAnchor: [18, 35]
+});
+
+const homeIcon = L.divIcon({
+  html: `<div style="font-size:34px;">🏠</div>`,
+  className: "",
+  iconSize: [35, 35],
+  iconAnchor: [18, 35]
+});
+
+const garageIcon = L.divIcon({
+  html: `<div style="font-size:34px;">🏢</div>`,
+  className: "",
+  iconSize: [35, 35],
+  iconAnchor: [18, 35]
+});
+
 function Tracking() {
   const { id } = useParams();
   const navigate = useNavigate();
 
-  // FIXED TOKEN KEY
   const token = localStorage.getItem("userToken");
 
   const customer = [12.9716, 77.5946];
@@ -30,18 +52,14 @@ function Tracking() {
 
   const [location, setLocation] = useState(null);
   const [phase, setPhase] = useState("TO_PICKUP");
-  const [route, setRoute] = useState([]);
   const [eta, setEta] = useState("--");
-  const [notStarted, setNotStarted] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [notStarted, setNotStarted] = useState(false);
 
   const lastPhase = useRef("");
 
-  // Redirect if token missing
   useEffect(() => {
-    if (!token) {
-      navigate("/login");
-    }
+    if (!token) navigate("/login");
   }, [token, navigate]);
 
   const detectPhase = (lat, lng) => {
@@ -53,31 +71,37 @@ function Tracking() {
       Math.abs(lat - garage[0]) < 0.002 &&
       Math.abs(lng - garage[1]) < 0.002;
 
-    if (nearGarage && lastPhase.current === "TO_GARAGE") {
+    if (nearGarage && lastPhase.current === "TO_GARAGE")
       return "RETURN";
-    }
 
     if (
       nearCustomer &&
       lastPhase.current === "TO_PICKUP"
-    ) {
+    )
       return "TO_GARAGE";
-    }
 
     if (
       nearCustomer &&
       lastPhase.current === "RETURN"
-    ) {
+    )
       return "DELIVERED";
-    }
 
-    if (lastPhase.current === "TO_GARAGE") return "TO_GARAGE";
-    if (lastPhase.current === "RETURN") return "RETURN";
+    if (lastPhase.current === "TO_GARAGE")
+      return "TO_GARAGE";
+
+    if (lastPhase.current === "RETURN")
+      return "RETURN";
 
     return "TO_PICKUP";
   };
 
-  // Fetch tracking location every 1.5 sec
+  const statusText = {
+    TO_PICKUP: "Pickup Agent Coming",
+    TO_GARAGE: "Vehicle Going To Garage",
+    RETURN: "Vehicle Out For Delivery",
+    DELIVERED: "Vehicle Delivered"
+  };
+
   useEffect(() => {
     if (!token) return;
 
@@ -95,14 +119,13 @@ function Tracking() {
         const data = await res.json();
 
         if (!res.ok) {
-          console.log(data);
           setLoading(false);
           return;
         }
 
         const loc = data?.data?.currentLocation;
 
-        if (!loc || !loc.lat || !loc.lng) {
+        if (!loc?.lat || !loc?.lng) {
           setNotStarted(true);
           setLoading(false);
           return;
@@ -110,59 +133,50 @@ function Tracking() {
 
         setNotStarted(false);
         setLoading(false);
+
         setLocation(loc);
 
-        const newPhase = detectPhase(loc.lat, loc.lng);
+        const newPhase = detectPhase(
+          loc.lat,
+          loc.lng
+        );
 
         setPhase(newPhase);
         lastPhase.current = newPhase;
-      } catch (error) {
-        console.log(error);
-        setLoading(false);
-      }
+
+        const target =
+          newPhase === "TO_GARAGE"
+            ? garage
+            : customer;
+
+        const distance =
+          Math.sqrt(
+            Math.pow(
+              target[0] - loc.lat,
+              2
+            ) +
+              Math.pow(
+                target[1] - loc.lng,
+                2
+              )
+          );
+
+        setEta(
+          Math.max(
+            1,
+            Math.round(distance * 700)
+          )
+        );
+      } catch {}
     }, 1500);
 
-    return () => clearInterval(interval);
+    return () =>
+      clearInterval(interval);
   }, [id, token]);
-
-  // Load route line
-  useEffect(() => {
-    if (!location) return;
-
-    let destination = customer;
-
-    if (phase === "TO_GARAGE") destination = garage;
-    if (phase === "RETURN") destination = customer;
-
-    const loadRoute = async () => {
-      try {
-        const url = `https://router.project-osrm.org/route/v1/driving/${location.lng},${location.lat};${destination[1]},${destination[0]}?overview=full&geometries=geojson`;
-
-        const res = await fetch(url);
-        const data = await res.json();
-
-        if (data.routes?.length) {
-          const coords =
-            data.routes[0].geometry.coordinates.map(
-              (c) => [c[1], c[0]]
-            );
-
-          setRoute(coords);
-          setEta(
-            Math.ceil(data.routes[0].duration / 60)
-          );
-        }
-      } catch (error) {
-        console.log(error);
-      }
-    };
-
-    loadRoute();
-  }, [location, phase]);
 
   if (loading) {
     return (
-      <div style={{ padding: "40px" }}>
+      <div style={{ padding: 40 }}>
         <h2>Loading Tracking...</h2>
       </div>
     );
@@ -170,18 +184,19 @@ function Tracking() {
 
   if (notStarted) {
     return (
-      <div style={{ padding: "40px" }}>
+      <div style={{ padding: 40 }}>
         <button
-          onClick={() => navigate("/dashboard")}
+          onClick={() =>
+            navigate("/dashboard")
+          }
         >
           Back
         </button>
 
         <h1>Tracking Not Started</h1>
-
         <p>
-          Pickup agent has not started live
-          tracking for this booking yet.
+          Pickup agent has not started
+          tracking yet.
         </p>
       </div>
     );
@@ -189,54 +204,80 @@ function Tracking() {
 
   if (!location) {
     return (
-      <div style={{ padding: "40px" }}>
+      <div style={{ padding: 40 }}>
         <h2>No Tracking Data</h2>
       </div>
     );
   }
 
   return (
-    <div style={{ padding: "20px" }}>
+    <div style={{ padding: 20 }}>
       <button
-        onClick={() => navigate("/dashboard")}
+        onClick={() =>
+          navigate("/dashboard")
+        }
         style={{
-          marginBottom: "15px",
-          padding: "8px 16px"
+          padding: "8px 18px",
+          marginBottom: 15
         }}
       >
         Back
       </button>
 
-      <h1>📍 Live Tracking</h1>
-      <h2>Status: {phase}</h2>
-      <h2>ETA: {eta} mins</h2>
+      <h1>Live Tracking</h1>
+      <h2>{statusText[phase]}</h2>
+      <h3>ETA: {eta} mins</h3>
 
       <MapContainer
-        center={[location.lat, location.lng]}
+        center={[
+          location.lat,
+          location.lng
+        ]}
         zoom={15}
         style={{
-          height: "550px",
+          height: "560px",
           width: "100%",
-          borderRadius: "12px"
+          borderRadius: "14px"
         }}
       >
         <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
 
         <Recenter
-          position={[location.lat, location.lng]}
+          position={[
+            location.lat,
+            location.lng
+          ]}
         />
 
         <Marker
-          position={[location.lat, location.lng]}
-        />
-        <Marker position={customer} />
-        <Marker position={garage} />
+          position={[
+            location.lat,
+            location.lng
+          ]}
+          icon={agentIcon}
+        >
+          <Tooltip permanent>
+            Pickup Agent
+          </Tooltip>
+        </Marker>
 
-        <Polyline
-          positions={route}
-          color="blue"
-          weight={6}
-        />
+        <Marker
+          position={customer}
+          icon={homeIcon}
+        >
+          <Tooltip permanent>
+            Customer
+          </Tooltip>
+        </Marker>
+
+        <Marker
+          position={garage}
+          icon={garageIcon}
+        >
+          <Tooltip permanent>
+            Garage
+          </Tooltip>
+        </Marker>
       </MapContainer>
     </div>
   );

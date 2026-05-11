@@ -192,43 +192,111 @@ function Dashboard() {
 
   /* ================= CREATE BOOKING ================= */
   const handleBooking =
-    async (e) => {
-      e.preventDefault();
+  async (e) => {
+    e.preventDefault();
 
-      const formData =
-        new FormData();
+    /* =========================
+       BLOCK SUNDAYS
+    ========================= */
 
-      Object.keys(booking).forEach(
-        (key) => {
-          if (
-            key !==
-            "pickupAddress"
-          ) {
-            formData.append(
-              key,
-              booking[key]
-            );
-          }
-        }
+    const selectedDate =
+      new Date(
+        booking.bookingDate
       );
 
-      formData.append(
-        "pickupAddress",
-        JSON.stringify(
-          booking.pickupAddress
+    if (
+      selectedDate.getDay() ===
+      0
+    ) {
+      alert(
+        "Bookings are not available on Sundays"
+      );
+
+      return;
+    }
+
+    /* =========================
+       PICKUP VALIDATION
+    ========================= */
+
+    if (
+      booking.bookingType ===
+      "PICKUP"
+    ) {
+      const addr =
+        booking.pickupAddress;
+
+      if (
+        !addr.houseNo ||
+        !addr.street ||
+        !addr.area ||
+        !addr.city ||
+        !addr.state ||
+        !addr.pincode
+      ) {
+        alert(
+          "All pickup address fields are required"
+        );
+
+        return;
+      }
+
+      const pincodeRegex =
+        /^\d{6}$/;
+
+      if (
+        !pincodeRegex.test(
+          addr.pincode
         )
-      );
+      ) {
+        alert(
+          "Pincode must be exactly 6 digits"
+        );
 
-      const res = await fetch(
-        "http://localhost:5000/api/bookings",
-        {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${token}`
-          },
-          body: formData
+        return;
+      }
+    }
+
+    /* =========================
+       CREATE FORM DATA
+    ========================= */
+
+    const formData =
+      new FormData();
+
+    Object.keys(booking).forEach(
+      (key) => {
+        if (
+          key !==
+          "pickupAddress"
+        ) {
+          formData.append(
+            key,
+            booking[key]
+          );
         }
-      );
+      }
+    );
+
+    formData.append(
+      "pickupAddress",
+      JSON.stringify(
+        booking.pickupAddress
+      )
+    );
+
+    try {
+      const res =
+        await fetch(
+          "http://localhost:5000/api/bookings",
+          {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${token}`
+            },
+            body: formData
+          }
+        );
 
       const data =
         await res.json();
@@ -240,12 +308,21 @@ function Dashboard() {
         alert(
           "Booking successful"
         );
-        fetchBookings();
-      } else {
-        alert(data.message);
-      }
-    };
 
+        fetchBookings();
+
+      } else {
+        alert(
+          data.message
+        );
+      }
+
+    } catch {
+      alert(
+        "Booking failed"
+      );
+    }
+  };
   /* ================= LOGOUT ================= */
   const logout = () => {
     localStorage.clear();
@@ -460,13 +537,18 @@ function Dashboard() {
           </select>
 
           <input
-            type="date"
-            name="bookingDate"
-            onChange={
-              handleBookingChange
-            }
-            required
-          />
+  type="date"
+  name="bookingDate"
+  min={
+    new Date()
+      .toISOString()
+      .split("T")[0]
+  }
+  onChange={
+    handleBookingChange
+  }
+  required
+/>
 
           <select
             name="bookingType"
@@ -512,6 +594,7 @@ function Dashboard() {
             <>
               <input
                 name="houseNo"
+                required
                 placeholder="House No"
                 onChange={
                   handleAddressChange
@@ -520,6 +603,7 @@ function Dashboard() {
 
               <input
                 name="street"
+                required
                 placeholder="Street"
                 onChange={
                   handleAddressChange
@@ -528,6 +612,7 @@ function Dashboard() {
 
               <input
                 name="area"
+                required
                 placeholder="Area"
                 onChange={
                   handleAddressChange
@@ -553,6 +638,7 @@ function Dashboard() {
 
               <input
                 name="state"
+                
                 placeholder="State"
                 defaultValue="Karnataka"
                 onChange={
@@ -561,12 +647,16 @@ function Dashboard() {
               />
 
               <input
-                name="pincode"
-                placeholder="Pincode"
-                onChange={
-                  handleAddressChange
-                }
-              />
+  name="pincode"
+  placeholder="Pincode"
+  maxLength="6"
+  inputMode="numeric"
+  pattern="\d{6}"
+  required
+  onChange={
+    handleAddressChange
+  }
+/>
             </>
           )}
 
@@ -610,18 +700,16 @@ function Dashboard() {
                   }
                 </p>
 
-                {b.bookingType ===
-                  "PICKUP" && (
-                  <button
-                    onClick={() =>
-                      navigate(
-                        `/track/${b._id}`
-                      )
-                    }
-                  >
-                    Track
-                  </button>
-                )}
+               {b.bookingType === "PICKUP" &&
+ b.status !== "DELIVERED" && (
+  <button
+    onClick={() =>
+      navigate(`/track/${b._id}`)
+    }
+  >
+    Track
+  </button>
+)}
               </div>
             )
           )}
