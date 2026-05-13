@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import "./Login.css";
 
 function Login() {
   const navigate = useNavigate();
@@ -9,7 +8,7 @@ function Login() {
     "https://api.dicebear.com/7.x/avataaars/svg?seed=Alex",
     "https://api.dicebear.com/7.x/avataaars/svg?seed=John",
     "https://api.dicebear.com/7.x/avataaars/svg?seed=Sara",
-    "https://api.dicebear.com/7.x/avataaars/svg?seed=Mike"
+    "https://api.dicebear.com/7.x/avataaars/svg?seed=Mike",
   ];
 
   const [mode, setMode] = useState("signin");
@@ -21,7 +20,7 @@ function Login() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [signupPhone, setSignupPhone] = useState("");
-  const [avatar, setAvatar] = useState(avatars[0]);
+  const [avatar] = useState(avatars[0]);
   const [photoPreview, setPhotoPreview] = useState("");
   const [otp, setOtp] = useState("");
 
@@ -35,6 +34,7 @@ function Login() {
 
   const handlePhotoChange = (e) => {
     const file = e.target.files[0];
+
     if (!file) return;
 
     const reader = new FileReader();
@@ -64,12 +64,11 @@ function Login() {
         {
           method: "POST",
           headers: {
-            "Content-Type":
-              "application/json"
+            "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            phone
-          })
+            phone,
+          }),
         }
       );
 
@@ -77,7 +76,7 @@ function Login() {
 
       if (res.ok) {
         setStep(2);
-        setMsg("OTP sent");
+        setMsg("OTP sent successfully");
       } else {
         setMsg(data.message);
       }
@@ -96,9 +95,7 @@ function Login() {
     }
 
     if (!validateEmail(email)) {
-      setMsg(
-        "Enter valid Gmail address"
-      );
+      setMsg("Enter valid Gmail address");
       return;
     }
 
@@ -118,18 +115,15 @@ function Login() {
         {
           method: "POST",
           headers: {
-            "Content-Type":
-              "application/json"
+            "Content-Type": "application/json",
           },
           body: JSON.stringify({
             name,
             email,
-            phone:
-              signupPhone,
+            phone: signupPhone,
             profilePhoto:
-              photoPreview ||
-              avatar
-          })
+              photoPreview || avatar,
+          }),
         }
       );
 
@@ -137,7 +131,7 @@ function Login() {
 
       if (res.ok) {
         setStep(2);
-        setMsg("OTP sent");
+        setMsg("OTP sent successfully");
       } else {
         setMsg(data.message);
       }
@@ -148,6 +142,7 @@ function Login() {
     }
   };
 
+  /* VERIFY OTP */
   const verifyOtp = async () => {
     try {
       setLoading(true);
@@ -161,12 +156,11 @@ function Login() {
         mode === "signin"
           ? {
               phone,
-              otp
+              otp,
             }
           : {
-              phone:
-                signupPhone,
-              otp
+              phone: signupPhone,
+              otp,
             };
 
       const res = await fetch(
@@ -174,12 +168,9 @@ function Login() {
         {
           method: "POST",
           headers: {
-            "Content-Type":
-              "application/json"
+            "Content-Type": "application/json",
           },
-          body: JSON.stringify(
-            body
-          )
+          body: JSON.stringify(body),
         }
       );
 
@@ -198,14 +189,10 @@ function Login() {
 
         localStorage.setItem(
           "profile",
-          JSON.stringify(
-            data.user
-          )
+          JSON.stringify(data.user)
         );
 
-        navigate(
-          "/dashboard"
-        );
+        navigate("/dashboard");
       } else {
         setMsg(data.message);
       }
@@ -227,166 +214,230 @@ function Login() {
   };
 
   return (
-    <div className="login-page">
-      <div className="login-card">
-        <h1>Vehicle Service</h1>
+    <div className="min-h-screen flex bg-slate-100">
+      {/* LEFT PANEL */}
+      <div className="hidden lg:flex w-1/2 bg-gradient-to-br from-slate-900 via-blue-900 to-slate-950 text-white p-16 flex-col justify-between">
+        <div>
+          <h1 className="text-5xl font-extrabold leading-tight">
+            Vehicle Service
+            <br />
+            Management
+          </h1>
 
-        <div className="tab-row">
-          <button
-            className={
-              mode === "signin"
-                ? "active-tab"
-                : ""
-            }
-            onClick={() => {
-              setMode(
-                "signin"
-              );
-              setStep(1);
-              setMsg("");
-            }}
-          >
-            Sign In
-          </button>
-
-          <button
-            className={
-              mode === "signup"
-                ? "active-tab"
-                : ""
-            }
-            onClick={() => {
-              setMode(
-                "signup"
-              );
-              setStep(1);
-              setMsg("");
-            }}
-          >
-            Sign Up
-          </button>
+          <p className="mt-6 text-slate-300 text-lg leading-8 max-w-lg">
+            Smart vehicle service platform with
+            live tracking, pickup management,
+            service lifecycle monitoring, and
+            premium customer experience.
+          </p>
         </div>
 
-        {step === 1 &&
-          mode === "signin" && (
-            <input
-              placeholder="Phone Number"
-              value={phone}
-              maxLength="10"
-              onChange={(e) =>
-                setPhone(
-                  e.target.value.replace(
-                    /\D/g,
-                    ""
-                  )
-                )
-              }
-            />
-          )}
+        <div className="space-y-6">
+          <div className="bg-white/10 backdrop-blur-lg p-6 rounded-2xl border border-white/10">
+            <h3 className="text-xl font-semibold">
+              Live Tracking
+            </h3>
 
-        {step === 1 &&
-          mode === "signup" && (
-            <>
-              <input
-                placeholder="Full Name"
-                value={name}
-                onChange={(e) =>
-                  setName(
-                    e.target.value
-                  )
-                }
-              />
+            <p className="text-slate-300 mt-2">
+              Real-time pickup and delivery
+              tracking system.
+            </p>
+          </div>
 
-              <input
-                placeholder="Email"
-                value={email}
-                onChange={(e) =>
-                  setEmail(
-                    e.target.value
-                  )
-                }
-              />
+          <div className="bg-white/10 backdrop-blur-lg p-6 rounded-2xl border border-white/10">
+            <h3 className="text-xl font-semibold">
+              Smart Booking
+            </h3>
 
-              <input
-                placeholder="Phone Number"
-                value={
-                  signupPhone
-                }
-                maxLength="10"
-                onChange={(e) =>
-                  setSignupPhone(
-                    e.target.value.replace(
-                      /\D/g,
-                      ""
-                    )
-                  )
-                }
-              />
+            <p className="text-slate-300 mt-2">
+              Seamless booking experience with
+              automated validation.
+            </p>
+          </div>
+        </div>
+      </div>
 
-              <label className="upload-box">
-                Upload Photo
-                <input
-                  type="file"
-                  hidden
-                  accept="image/*"
-                  onChange={
-                    handlePhotoChange
-                  }
-                />
-              </label>
+      {/* RIGHT PANEL */}
+      <div className="flex-1 flex items-center justify-center p-6">
+        <div className="w-full max-w-md bg-white rounded-3xl shadow-2xl p-8">
+          <div className="text-center">
+            <h2 className="text-4xl font-extrabold text-slate-900">
+              {mode === "signin"
+                ? "Welcome Back"
+                : "Create Account"}
+            </h2>
 
-              {photoPreview && (
-                <img
-                  src={
-                    photoPreview
-                  }
-                  alt=""
-                  className="preview-img"
-                />
-              )}
-            </>
-          )}
+            <p className="text-slate-500 mt-3">
+              Vehicle Service Management
+            </p>
+          </div>
 
-        {step === 2 && (
-          <>
-            <input
-              placeholder="Enter OTP"
-              value={otp}
-              onChange={(e) =>
-                setOtp(
-                  e.target.value
-                )
-              }
-            />
+          {/* TABS */}
+          <div className="flex bg-slate-100 rounded-2xl p-1 mt-8">
+            <button
+              onClick={() => {
+                setMode("signin");
+                setStep(1);
+                setMsg("");
+              }}
+              className={`flex-1 py-3 rounded-xl font-semibold transition-all ${
+                mode === "signin"
+                  ? "bg-blue-600 text-white shadow-lg"
+                  : "text-slate-600"
+              }`}
+            >
+              Sign In
+            </button>
 
             <button
-              onClick={() =>
-                setStep(1)
-              }
+              onClick={() => {
+                setMode("signup");
+                setStep(1);
+                setMsg("");
+              }}
+              className={`flex-1 py-3 rounded-xl font-semibold transition-all ${
+                mode === "signup"
+                  ? "bg-blue-600 text-white shadow-lg"
+                  : "text-slate-600"
+              }`}
             >
-              Back
+              Sign Up
             </button>
-          </>
-        )}
-
-        <button
-          onClick={
-            submitAction
-          }
-          disabled={loading}
-        >
-          {loading
-            ? "Please wait..."
-            : step === 1
-            ? "Send OTP"
-            : "Verify OTP"}
-        </button>
-
-        {msg && (
-          <div className="msg-box">
-            {msg}
           </div>
-        )}
+
+          {/* FORM */}
+          <div className="mt-8 space-y-5">
+            {step === 1 &&
+              mode === "signin" && (
+                <input
+                  type="text"
+                  placeholder="Phone Number"
+                  value={phone}
+                  maxLength="10"
+                  onChange={(e) =>
+                    setPhone(
+                      e.target.value.replace(
+                        /\D/g,
+                        ""
+                      )
+                    )
+                  }
+                  className="w-full p-4 rounded-2xl border border-slate-300 outline-none focus:ring-4 focus:ring-blue-200 transition-all"
+                />
+              )}
+
+            {step === 1 &&
+              mode === "signup" && (
+                <>
+                  <input
+                    type="text"
+                    placeholder="Full Name"
+                    value={name}
+                    onChange={(e) =>
+                      setName(e.target.value)
+                    }
+                    className="w-full p-4 rounded-2xl border border-slate-300 outline-none focus:ring-4 focus:ring-blue-200 transition-all"
+                  />
+
+                  <input
+                    type="email"
+                    placeholder="Email"
+                    value={email}
+                    onChange={(e) =>
+                      setEmail(
+                        e.target.value
+                      )
+                    }
+                    className="w-full p-4 rounded-2xl border border-slate-300 outline-none focus:ring-4 focus:ring-blue-200 transition-all"
+                  />
+
+                  <input
+                    type="text"
+                    placeholder="Phone Number"
+                    value={signupPhone}
+                    maxLength="10"
+                    onChange={(e) =>
+                      setSignupPhone(
+                        e.target.value.replace(
+                          /\D/g,
+                          ""
+                        )
+                      )
+                    }
+                    className="w-full p-4 rounded-2xl border border-slate-300 outline-none focus:ring-4 focus:ring-blue-200 transition-all"
+                  />
+
+                  <div>
+                    <label className="block text-sm font-semibold text-slate-700 mb-2">
+                      Upload Profile Photo
+                    </label>
+
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={
+                        handlePhotoChange
+                      }
+                      className="w-full p-3 rounded-2xl border border-slate-300 bg-slate-50"
+                    />
+                  </div>
+
+                  {photoPreview && (
+                    <div className="flex justify-center">
+                      <img
+                        src={photoPreview}
+                        alt="preview"
+                        className="w-24 h-24 rounded-full object-cover border-4 border-blue-500 shadow-lg"
+                      />
+                    </div>
+                  )}
+                </>
+              )}
+
+            {step === 2 && (
+              <>
+                <input
+                  type="text"
+                  placeholder="Enter OTP"
+                  value={otp}
+                  onChange={(e) =>
+                    setOtp(e.target.value)
+                  }
+                  className="w-full p-4 rounded-2xl border border-slate-300 outline-none focus:ring-4 focus:ring-blue-200 transition-all text-center tracking-[10px] text-xl font-bold"
+                />
+
+                <button
+                  onClick={() =>
+                    setStep(1)
+                  }
+                  className="text-blue-600 font-semibold"
+                >
+                  ← Back
+                </button>
+              </>
+            )}
+
+            {/* ACTION BUTTON */}
+            <button
+              onClick={submitAction}
+              disabled={loading}
+              className="w-full bg-slate-900 hover:bg-blue-700 text-white font-bold py-4 rounded-2xl transition-all duration-300 shadow-xl hover:scale-[1.02]"
+            >
+              {loading
+                ? "Please wait..."
+                : step === 1
+                ? "Send OTP"
+                : "Verify OTP"}
+            </button>
+
+            {/* MESSAGE */}
+            {msg && (
+              <div className="bg-blue-50 border border-blue-200 text-blue-700 p-4 rounded-2xl text-center font-medium">
+                {msg}
+              </div>
+            )}
+          </div>
+        </div>
       </div>
     </div>
   );

@@ -23,6 +23,21 @@ export const createBooking =
           req.file.filename;
       }
 
+      // CHECK EXISTING BOOKING
+      const existingBooking =
+        await Booking.findOne({
+          vehicle: payload.vehicle,
+          bookingDate: payload.bookingDate
+        });
+
+      if (existingBooking) {
+        return res.status(400).json({
+          success: false,
+          message:
+            "This vehicle already has a booking on selected date"
+        });
+      }
+
       const result =
         await createBookingService(
           payload,
