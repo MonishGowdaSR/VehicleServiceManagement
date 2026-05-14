@@ -5,6 +5,11 @@ import {
 } from "react";
 import { useNavigate } from "react-router-dom";
 //import "./Dashboard.css";
+import DatePicker from "react-datepicker";
+import Sidebar from "../components/Sidebar";
+import Topbar from "../components/Topbar";
+import VehicleCard from "../components/VehicleCard";
+import BookingCard from "../components/BookingCard";
 
 function Dashboard() {
   const navigate = useNavigate();
@@ -420,81 +425,31 @@ const handleAdd = async (
     navigate("/login");
   };
 
+  const bookedDates =
+  bookings.map(
+    (b) =>
+      new Date(
+        b.bookingDate
+      )
+  );
+
   return (
   <div className="min-h-screen bg-slate-100 flex">
     {/* SIDEBAR */}
-    <div className="hidden lg:flex w-72 bg-slate-950 text-white flex-col p-8 justify-between">
-      <div>
-        <h1 className="text-3xl font-black tracking-tight">
-          Vehicle Service
-        </h1>
-        <p className="text-slate-400 mt-2">
-          Smart Service Platform
-        </p>
-        <div className="mt-12 space-y-4">
-          <div className="bg-blue-600/20 border border-blue-500/20 rounded-2xl p-4">
-            <h3 className="text-lg font-semibold">
-              Vehicles
-            </h3>
-            <p className="text-3xl font-black mt-2">
-              {vehicles.length}
-            </p>
-          </div>
-          <div className="bg-emerald-600/20 border border-emerald-500/20 rounded-2xl p-4">
-            <h3 className="text-lg font-semibold">
-              Bookings
-            </h3>
-            <p className="text-3xl font-black mt-2">
-              {bookings.length}
-            </p>
-          </div>
-        </div>
-      </div>
-      <button
-        onClick={logout}
-        className="bg-red-500 hover:bg-red-600 transition-all py-4 rounded-2xl font-bold"
-      >
-        Logout
-      </button>
-    </div>
+    <Sidebar
+  vehicles={vehicles}
+  bookings={bookings}
+  logout={logout}
+/>
 
     {/* MAIN CONTENT */}
     <div className="flex-1 p-6 lg:p-10 overflow-y-auto">
       <div className="space-y-8">
         {/* HEADER */}
-        <header className="bg-white rounded-3xl shadow-sm border border-slate-200 p-6 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
-          <div className="flex items-center gap-5">
-            <img
-              src={
-                profile.profilePhoto && profile.profilePhoto !== ""
-                  ? profile.profilePhoto
-                  : "https://cdn-icons-png.flaticon.com/512/3135/3135715.png"
-              }
-              alt="Profile"
-              className="w-24 h-24 rounded-3xl object-cover border-4 border-blue-500 shadow-lg"
-            />
-            <div>
-              <h2 className="text-3xl font-black text-slate-900">
-                {profile.name}
-              </h2>
-              <p className="text-slate-500 mt-1">
-                {profile.phone}
-              </p>
-              <p className="text-slate-500">
-                {profile.email}
-              </p>
-              <div className="mt-3 inline-flex items-center px-4 py-2 rounded-full bg-emerald-100 text-emerald-700 text-sm font-semibold">
-                Active Customer
-              </div>
-            </div>
-          </div>
-          <button
-            onClick={logout}
-            className="bg-red-500 hover:bg-red-600 text-white px-6 py-3 rounded-2xl font-bold transition-all"
-          >
-            Logout
-          </button>
-        </header>
+        <Topbar
+  profile={profile}
+  logout={logout}
+/>
 {/* ADD VEHICLE */}
 <section className="bg-white rounded-3xl border border-slate-200 shadow-sm p-8">
   <h2 className="text-4xl font-black text-slate-900 mb-8">
@@ -590,57 +545,28 @@ const handleAdd = async (
   </form>
 </section>
 
-        {/* MY VEHICLES */}
-        <section className="bg-white rounded-3xl shadow-sm border border-slate-200 p-6">
-          <h3 className="text-2xl font-black text-slate-900 mb-5">
-            My Vehicles
-          </h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {vehicles.map((v) => (
-              <div
-                key={v._id}
-                className="border border-slate-200 rounded-2xl p-4 shadow-sm hover:shadow-md transition"
-              >
-               <div className="flex justify-center mb-5">
+       {/* MY VEHICLES */}
+<section className="bg-white rounded-3xl shadow-sm border border-slate-200 p-6">
 
-  <img
-    src={
-      v.vehiclePhoto &&
-      v.vehiclePhoto !== ""
-        ? `http://localhost:5000/${v.vehiclePhoto.replace(
-            "\\",
-            "/"
-          )}`
-        : "https://cdn-icons-png.flaticon.com/512/854/854878.png"
-    }
-    alt="vehicle"
-    className="w-28 h-28 rounded-full object-cover border-4 border-slate-200 shadow-lg"
-  />
+  <h3 className="text-2xl font-black text-slate-900 mb-5">
+    My Vehicles
+  </h3>
 
-</div>
-                <h4 className="text-xl font-bold">
-                  {v.vehicleNumber}
-                </h4>
-                <p className="text-slate-600">
-                  {v.brand} {v.model}
-                </p>
-                <p className="text-slate-600">
-                  {v.vehicleType}
-                </p>
-                <p className="text-slate-600">
-                  {v.fuelType}
-                </p>
-                <button
-                  onClick={() => handleQuickBook(v._id)}
-                  className="mt-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2 px-4 rounded-xl transition w-full"
-                >
-                  Book Service
-                </button>
-              </div>
-            ))}
-          </div>
-        </section>
+  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
 
+    {vehicles.map((v) => (
+      <VehicleCard
+        key={v._id}
+        vehicle={v}
+        handleQuickBook={
+          handleQuickBook
+        }
+      />
+    ))}
+
+  </div>
+
+</section>
        {/* BOOK SERVICE */}
 <section
   className="bg-white rounded-3xl border border-slate-200 shadow-sm p-8"
@@ -680,15 +606,40 @@ const handleAdd = async (
       <option value="PUNCTURE">Puncture</option>
     </select>
 
-    <input
-      type="date"
-      name="bookingDate"
-      min={new Date().toISOString().split("T")[0]}
-      onChange={handleBookingChange}
-      required
-      className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-5 py-4 text-slate-800 focus:outline-none focus:ring-4 focus:ring-blue-100 focus:border-blue-500 transition-all"
-    />
+    <div className="w-full">
 
+  <DatePicker
+    selected={
+      booking.bookingDate
+        ? new Date(
+            booking.bookingDate
+          )
+        : null
+    }
+    onChange={(date) =>
+      setBooking({
+        ...booking,
+        bookingDate:
+          date
+            .toISOString()
+            .split("T")[0],
+      })
+    }
+    minDate={
+      new Date()
+    }
+    filterDate={(date) =>
+      date.getDay() !== 0
+    }
+    highlightDates={
+      bookedDates
+    }
+    placeholderText="Select Booking Date"
+    className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-5 py-4 text-slate-800 focus:outline-none focus:ring-4 focus:ring-blue-100"
+    required
+  />
+
+</div>
     <select
       name="bookingType"
       onChange={handleBookingChange}
@@ -791,51 +742,24 @@ const handleAdd = async (
 </section>
         {/* MY BOOKINGS */}
 <section className="bg-white rounded-3xl border border-slate-200 shadow-sm p-8">
+
   <h2 className="text-4xl font-black text-slate-900 mb-8">
     My Bookings
   </h2>
+
   <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
+
     {bookings.map((b) => (
-      <div
+      <BookingCard
         key={b._id}
-        className="bg-slate-50 border border-slate-200 rounded-3xl p-6 hover:shadow-xl hover:-translate-y-1 transition-all duration-300"
-      >
-        <h3 className="text-3xl font-black text-slate-900">
-          {b.vehicle?.vehicleNumber}
-        </h3>
-        
-        <div className="mt-4 inline-flex px-4 py-2 rounded-full bg-blue-100 text-blue-700 font-semibold text-sm">
-          {b.serviceType}
-        </div>
-        
-        <div
-          className={`mt-3 inline-flex px-4 py-2 rounded-full text-sm font-bold ${
-            b.status === "COMPLETED"
-              ? "bg-emerald-100 text-emerald-700"
-              : b.status === "IN_PROGRESS"
-              ? "bg-yellow-100 text-yellow-700"
-              : "bg-slate-200 text-slate-700"
-          }`}
-        >
-          {b.status}
-        </div>
-        
-        <p className="mt-5 text-slate-600 leading-relaxed">
-          {b.issueDescription}
-        </p>
-        
-        {b.bookingType === "PICKUP" && b.status !== "DELIVERED" && (
-          <button
-            onClick={() => navigate(`/track/${b._id}`)}
-            className="mt-6 w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:shadow-lg hover:scale-[1.01] transition-all text-white font-bold py-3 px-4 rounded-xl"
-          >
-            Track Booking
-          </button>
-        )}
-      </div>
+        booking={b}
+      />
     ))}
+
   </div>
+
 </section>
+
       </div>
     </div>
   </div>
