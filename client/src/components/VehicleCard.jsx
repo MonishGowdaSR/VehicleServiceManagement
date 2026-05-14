@@ -7,19 +7,18 @@ function VehicleCard({
 
       <div className="flex justify-center mb-5">
 
-        <img
-          src={
-            vehicle.vehiclePhoto &&
-            vehicle.vehiclePhoto !== ""
-              ? `http://localhost:5000/${vehicle.vehiclePhoto.replace(
-                  "\\",
-                  "/"
-                )}`
-              : "https://cdn-icons-png.flaticon.com/512/854/854878.png"
-          }
-          alt="vehicle"
-          className="w-28 h-28 rounded-full object-cover border-4 border-slate-200 shadow-lg"
-        />
+       <img
+  src={
+    vehicle?.vehiclePhoto
+      ? `http://localhost:5000/${vehicle.vehiclePhoto.replace(
+          /\\/g,
+          "/"
+        )}`
+      : "https://cdn-icons-png.flaticon.com/512/854/854878.png"
+  }
+  alt="vehicle"
+  className="w-24 h-24 rounded-full object-cover border-4 border-slate-200 shadow-md"
+/>
 
       </div>
 

@@ -10,6 +10,8 @@ import Sidebar from "../components/Sidebar";
 import Topbar from "../components/Topbar";
 import VehicleCard from "../components/VehicleCard";
 import BookingCard from "../components/BookingCard";
+import AddVehicleForm from "../components/AddVehicleForm";
+import BookingForm from "../components/BookingForm";
 
 function Dashboard() {
   const navigate = useNavigate();
@@ -451,108 +453,20 @@ const handleAdd = async (
   logout={logout}
 />
 {/* ADD VEHICLE */}
-<section className="bg-white rounded-3xl border border-slate-200 shadow-sm p-8">
+<AddVehicleForm
+  handleAdd={handleAdd}
+  handleChange={handleChange}
+  setForm={setForm}
+  form={form}
+/>
+{/* MY VEHICLES */}
+<section className="bg-white rounded-3xl shadow-sm border border-slate-200 p-8">
+
   <h2 className="text-4xl font-black text-slate-900 mb-8">
-    Add Vehicle
-  </h2>
-  <form
-    onSubmit={handleAdd}
-    className="grid grid-cols-1 md:grid-cols-2 gap-6"
-  >
-    <input
-      name="vehicleNumber"
-      placeholder="Vehicle Number"
-      onChange={handleChange}
-      required
-      className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-5 py-4 text-slate-800 focus:outline-none focus:ring-4 focus:ring-blue-100 focus:border-blue-500 transition-all"
-    />
-    <select
-      name="vehicleType"
-      onChange={handleChange}
-      className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-5 py-4 text-slate-800 focus:outline-none focus:ring-4 focus:ring-blue-100 focus:border-blue-500 transition-all"
-    >
-      <option value="CAR">Car</option>
-      <option value="BIKE">Bike</option>
-      <option value="E_CAR">E-Car</option>
-      <option value="E_BIKE">E-Bike</option>
-      <option value="RICKSHAW">Rickshaw</option>
-      <option value="E_RICKSHAW">E-Rickshaw</option>
-    </select>
-    <input
-      name="brand"
-      placeholder="Brand"
-      onChange={handleChange}
-      className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-5 py-4 text-slate-800 focus:outline-none focus:ring-4 focus:ring-blue-100 focus:border-blue-500 transition-all"
-    />
-    <input
-      name="model"
-      placeholder="Model"
-      onChange={handleChange}
-      className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-5 py-4 text-slate-800 focus:outline-none focus:ring-4 focus:ring-blue-100 focus:border-blue-500 transition-all"
-    />
-    <select
-      name="fuelType"
-      onChange={handleChange}
-      className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-5 py-4 text-slate-800 focus:outline-none focus:ring-4 focus:ring-blue-100 focus:border-blue-500 transition-all"
-    >
-      <option value="PETROL">Petrol</option>
-      <option value="DIESEL">Diesel</option>
-      <option value="ELECTRIC">Electric</option>
-      <option value="CNG">CNG</option>
-    </select>
-    <div>
-      <label className="block font-semibold mb-1">
-        Vehicle Photo
-      </label>
-      <input
-        type="file"
-        name="vehiclePhoto"
-        accept="image/*"
-        required
-        onChange={(e) =>
-          setForm({
-            ...form,
-            vehiclePhoto: e.target.files[0]
-          })
-        }
-        className="w-full bg-slate-50 border border-dashed border-slate-300 rounded-2xl p-4"
-      />
-    </div>
-    <div>
-      <label className="block font-semibold mb-1">
-        Driving License
-      </label>
-      <input
-        type="file"
-        name="licenseDocument"
-        accept=".jpg,.jpeg,.png,.pdf"
-        required
-        onChange={(e) =>
-          setForm({
-            ...form,
-            licenseDocument: e.target.files[0]
-          })
-        }
-        className="w-full bg-slate-50 border border-dashed border-slate-300 rounded-2xl p-4"
-      />
-    </div>
-    <button
-      type="submit"
-      className="md:col-span-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:scale-[1.02] hover:shadow-xl transition-all text-white font-bold py-4 px-6 rounded-2xl"
-    >
-      Add Vehicle
-    </button>
-  </form>
-</section>
-
-       {/* MY VEHICLES */}
-<section className="bg-white rounded-3xl shadow-sm border border-slate-200 p-6">
-
-  <h3 className="text-2xl font-black text-slate-900 mb-5">
     My Vehicles
-  </h3>
+  </h2>
 
-  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+  <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
 
     {vehicles.map((v) => (
       <VehicleCard
@@ -568,178 +482,22 @@ const handleAdd = async (
 
 </section>
        {/* BOOK SERVICE */}
-<section
-  className="bg-white rounded-3xl border border-slate-200 shadow-sm p-8"
-  ref={bookingSectionRef}
->
-  <h2 className="text-4xl font-black text-slate-900 mb-8">
-    Book Service
-  </h2>
-  <form
-    onSubmit={handleBooking}
-    className="grid grid-cols-1 md:grid-cols-2 gap-6"
-  >
-    <select
-      name="vehicle"
-      value={booking.vehicle}
-      onChange={handleBookingChange}
-      required
-      className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-5 py-4 text-slate-800 focus:outline-none focus:ring-4 focus:ring-blue-100 focus:border-blue-500 transition-all"
-    >
-      <option value="">Select Vehicle</option>
-      {vehicles.map((v) => (
-        <option key={v._id} value={v._id}>
-          {v.vehicleNumber}
-        </option>
-      ))}
-    </select>
-
-    <select
-      name="serviceType"
-      onChange={handleBookingChange}
-      className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-5 py-4 text-slate-800 focus:outline-none focus:ring-4 focus:ring-blue-100 focus:border-blue-500 transition-all"
-    >
-      <option value="GENERAL_SERVICE">General Service</option>
-      <option value="REPAIR">Repair</option>
-      <option value="CAR_WASH">Car Wash</option>
-      <option value="BATTERY">Battery</option>
-      <option value="PUNCTURE">Puncture</option>
-    </select>
-
-    <div className="w-full">
-
-  <DatePicker
-    selected={
-      booking.bookingDate
-        ? new Date(
-            booking.bookingDate
-          )
-        : null
-    }
-    onChange={(date) =>
-      setBooking({
-        ...booking,
-        bookingDate:
-          date
-            .toISOString()
-            .split("T")[0],
-      })
-    }
-    minDate={
-      new Date()
-    }
-    filterDate={(date) =>
-      date.getDay() !== 0
-    }
-    highlightDates={
-      bookedDates
-    }
-    placeholderText="Select Booking Date"
-    className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-5 py-4 text-slate-800 focus:outline-none focus:ring-4 focus:ring-blue-100"
-    required
-  />
-
-</div>
-    <select
-      name="bookingType"
-      onChange={handleBookingChange}
-      className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-5 py-4 text-slate-800 focus:outline-none focus:ring-4 focus:ring-blue-100 focus:border-blue-500 transition-all"
-    >
-      <option value="SELF">Self Drop</option>
-      <option value="PICKUP">Pickup</option>
-    </select>
-
-    <textarea
-      name="issueDescription"
-      placeholder="Describe vehicle issue"
-      onChange={handleBookingChange}
-      required
-      rows="3"
-      className="w-full md:col-span-2 bg-slate-50 border border-slate-200 rounded-2xl px-5 py-4 text-slate-800 focus:outline-none focus:ring-4 focus:ring-blue-100 focus:border-blue-500 transition-all"
-    />
-
-    <div className="md:col-span-2">
-      <label className="block font-semibold mb-2 text-slate-700">
-        Damage Image (Optional)
-      </label>
-      <input
-        type="file"
-        name="damageImage"
-        accept="image/*"
-        onChange={handleBookingChange}
-        className="w-full bg-slate-50 border border-dashed border-slate-300 rounded-2xl p-4"
-      />
-    </div>
-
-    {booking.bookingType === "PICKUP" && (
-      <div className="md:col-span-2 space-y-4 pt-2">
-        <h3 className="text-xl font-bold text-slate-800 mb-3">
-          Pickup Address
-        </h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <input
-            name="houseNo"
-            required
-            placeholder="House No"
-            onChange={handleAddressChange}
-            className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-5 py-4 text-slate-800 focus:outline-none focus:ring-4 focus:ring-blue-100 focus:border-blue-500 transition-all"
-          />
-          <input
-            name="street"
-            required
-            placeholder="Street"
-            onChange={handleAddressChange}
-            className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-5 py-4 text-slate-800 focus:outline-none focus:ring-4 focus:ring-blue-100 focus:border-blue-500 transition-all"
-          />
-          <input
-            name="area"
-            required
-            placeholder="Area"
-            onChange={handleAddressChange}
-            className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-5 py-4 text-slate-800 focus:outline-none focus:ring-4 focus:ring-blue-100 focus:border-blue-500 transition-all"
-          />
-          <input
-            name="landmark"
-            placeholder="Landmark (Optional)"
-            onChange={handleAddressChange}
-            className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-5 py-4 text-slate-800 focus:outline-none focus:ring-4 focus:ring-blue-100 focus:border-blue-500 transition-all"
-          />
-          <input
-            name="city"
-            placeholder="City"
-            defaultValue="Bengaluru"
-            onChange={handleAddressChange}
-            className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-5 py-4 text-slate-800 focus:outline-none focus:ring-4 focus:ring-blue-100 focus:border-blue-500 transition-all"
-          />
-          <input
-            name="state"
-            placeholder="State"
-            defaultValue="Karnataka"
-            onChange={handleAddressChange}
-            className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-5 py-4 text-slate-800 focus:outline-none focus:ring-4 focus:ring-blue-100 focus:border-blue-500 transition-all"
-          />
-          <input
-            name="pincode"
-            placeholder="Pincode"
-            maxLength="6"
-            inputMode="numeric"
-            pattern="\d{6}"
-            required
-            onChange={handleAddressChange}
-            className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-5 py-4 text-slate-800 focus:outline-none focus:ring-4 focus:ring-blue-100 focus:border-blue-500 transition-all"
-          />
-        </div>
-      </div>
-    )}
-
-    <button
-      type="submit"
-      className="md:col-span-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:scale-[1.01] hover:shadow-xl transition-all text-white font-bold py-4 rounded-2xl text-lg"
-    >
-      Book Now
-    </button>
-  </form>
-</section>
+<BookingForm
+  booking={booking}
+  setBooking={setBooking}
+  vehicles={vehicles}
+  handleBooking={handleBooking}
+  handleBookingChange={
+    handleBookingChange
+  }
+  handleAddressChange={
+    handleAddressChange
+  }
+  bookingSectionRef={
+    bookingSectionRef
+  }
+  bookings={bookings}
+/>
         {/* MY BOOKINGS */}
 <section className="bg-white rounded-3xl border border-slate-200 shadow-sm p-8">
 
