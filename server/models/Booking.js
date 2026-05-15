@@ -208,7 +208,16 @@ const bookingSchema =
           completedAt:
             Date,
           deliveredAt:
-            Date
+            Date,
+
+          paymentPendingAt:
+            Date,
+
+          paidAt:
+            Date,
+
+          readyForDeliveryAt:
+            Date,
         },
 
       /* ================= LIVE TRACKING ================= */
@@ -248,18 +257,60 @@ const bookingSchema =
         maxlength: 500
       },
 
-      estimatedPrice:
-        {
-          type:
-            Number,
-          default: 0
-        },
+      /* ================= INVOICE ================= */
+invoice: {
+  baseAmount: {
+    type: Number,
+    default: 0
+  },
 
-      finalPrice:
-        {
-          type:
-            Number
-        },
+  pickupCharge: {
+    type: Number,
+    default: 0
+  },
+
+  repairCharge: {
+    type: Number,
+    default: 0
+  },
+
+  discount: {
+    type: Number,
+    default: 0
+  },
+
+  totalAmount: {
+    type: Number,
+    default: 0
+  },
+
+  notes: {
+    type: String,
+    default: ""
+  },
+
+  generatedAt: Date
+},
+
+/* ================= PAYMENT ================= */
+paymentStatus: {
+  type: String,
+  enum: [
+    "NOT_REQUIRED",
+    "PAYMENT_PENDING",
+    "PAID",
+    "FAILED"
+  ],
+  default:
+    "NOT_REQUIRED"
+},
+
+paymentId: {
+  type: String,
+  default: ""
+},
+
+paidAt: Date,
 
       isDeleted: {
         type: Boolean,

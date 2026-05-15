@@ -3,7 +3,9 @@ import protect from "../middleware/auth.js";
 
 import {
   getAllBookings,
-  deliverVehicle
+  updateBookingStatus,
+  deliverVehicle,
+  generateInvoice
 } from "../controllers/adminController.js";
 
 const router = express.Router();
@@ -20,6 +22,16 @@ router.patch(
   "/deliver/:bookingId",
   protect,
   deliverVehicle
+);
+
+/* ============================= */
+/* GENERATE INVOICE */
+/* ============================= */
+router.patch(
+  "/generate-invoice/:bookingId",
+  protect,
+  adminOnly,
+  generateInvoice
 );
 
 export default router;

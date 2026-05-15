@@ -6,6 +6,18 @@ function AdminDashboard() {
   const [bookings, setBookings] =
     useState([]);
 
+  const [invoiceData, setInvoiceData] =
+  useState({
+    baseAmount: "",
+    pickupCharge: "",
+    repairCharge: "",
+    discount: "",
+    notes: ""
+  });
+
+const [selectedBooking,
+  setSelectedBooking] =
+    useState(null);  
   const token =
     localStorage.getItem(
       "adminToken"
@@ -115,6 +127,57 @@ function AdminDashboard() {
           }
         );
 
+  const generateInvoice =
+  async () => {
+
+    if (!selectedBooking)
+      return;
+
+    try {
+
+      const res =
+        await fetch(
+          `http://localhost:5000/api/admin/generate-invoice/${selectedBooking}`,
+          {
+            method: "PATCH",
+
+            headers: {
+              "Content-Type":
+                "application/json",
+
+              Authorization:
+                `Bearer ${token}`
+            },
+
+            body:
+              JSON.stringify(
+                invoiceData
+              )
+          }
+        );
+
+      const data =
+        await res.json();
+
+      alert(
+        data.message
+      );
+
+      setSelectedBooking(
+        null
+      );
+
+      fetchBookings();
+
+    } catch (error) {
+
+      console.log(
+        error
+      );
+
+    }
+  };      
+
       const data =
         await res.json();
 
@@ -211,17 +274,51 @@ function AdminDashboard() {
         );
 
       case "COMPLETED":
-        return (
-          <button
-            onClick={() =>
-              deliver(
-                booking._id
-              )
-            }
-          >
-            Deliver Vehicle
-          </button>
-        );
+  return (
+    <button
+      onClick={() =>
+        setSelectedBooking(
+          booking._id
+        )
+      }
+    >
+      Generate Invoice
+    </button>
+  );
+
+      case "PAYMENT_PENDING":
+  return (
+    <button disabled>
+      Waiting For Payment
+    </button>
+  );
+  
+      case "PAID":
+  return (
+    <button
+      onClick={() =>
+        updateStatus(
+          booking._id,
+          "READY_FOR_DELIVERY"
+        )
+      }
+    >
+      Ready For Delivery
+    </button>
+  );
+
+        case "READY_FOR_DELIVERY":
+  return (
+    <button
+      onClick={() =>
+        deliver(
+          booking._id
+        )
+      }
+    >
+      Deliver Vehicle
+    </button>
+  );
 
       default:
         return null;
@@ -418,6 +515,102 @@ function AdminDashboard() {
           )}
         </div>
       </section>
+      {selectedBooking && (
+
+  <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+
+    <div className="bg-white p-8 rounded-3xl w-full max-w-lg space-y-4">
+
+      <h2 className="text-3xl font-black">
+        Generate Invoice
+      </h2>
+
+      <input
+        type="number"
+        placeholder="Base Amount"
+        onChange={(e) =>
+          setInvoiceData({
+            ...invoiceData,
+            baseAmount:
+              e.target.value
+          })
+        }
+      />
+
+      <input
+        type="number"
+        placeholder="Pickup Charge"
+        onChange={(e) =>
+          setInvoiceData({
+            ...invoiceData,
+            pickupCharge:
+              e.target.value
+          })
+        }
+      />
+
+      <input
+        type="number"
+        placeholder="Repair Charge"
+        onChange={(e) =>
+          setInvoiceData({
+            ...invoiceData,
+            repairCharge:
+              e.target.value
+          })
+        }
+      />
+
+      <input
+        type="number"
+        placeholder="Discount"
+        onChange={(e) =>
+          setInvoiceData({
+            ...invoiceData,
+            discount:
+              e.target.value
+          })
+        }
+      />
+
+      <textarea
+        placeholder="Notes"
+        onChange={(e) =>
+          setInvoiceData({
+            ...invoiceData,
+            notes:
+              e.target.value
+          })
+        }
+      />
+
+      <div className="flex gap-4">
+
+        <button
+          onClick={
+            generateInvoice
+          }
+        >
+          Generate
+        </button>
+
+        <button
+          onClick={() =>
+            setSelectedBooking(
+              null
+            )
+          }
+        >
+          Cancel
+        </button>
+
+      </div>
+
+    </div>
+
+  </div>
+
+)}
     </div>
   );
 }

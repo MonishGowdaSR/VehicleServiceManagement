@@ -3,6 +3,8 @@ import { validateTransition } from "../utils/transitionValidator.js";
 import { validateRole } from "../utils/roleGuard.js";
 import { BOOKING_STATUS } from "../constants/bookingStatus.js";
 
+
+
 /* ==================================================
    DELIVERY SIMULATOR
 ================================================== */
@@ -273,5 +275,100 @@ export const deliverVehicle =
           message:
             error.message
         });
+    }
+
+  };
+  /* ============================= */
+/* GENERATE INVOICE */
+/* ============================= */
+export const generateInvoice =
+  async (req, res) => {
+    try {
+
+      const { bookingId } =
+        req.params;
+
+      const {
+        baseAmount,
+        pickupCharge,
+        repairCharge,
+        discount,
+        notes
+      } = req.body;
+
+      const booking =
+        await Booking.findById(
+          bookingId
+        );
+
+      if (!booking) {
+        return res
+          .status(404)
+          .json({
+            success: false,
+            message:
+              "Booking not found"
+          });
+      }
+
+      const totalAmount =
+        Number(baseAmount || 0) +
+        Number(pickupCharge || 0) +
+        Number(repairCharge || 0) -
+        Number(discount || 0);
+
+      booking.invoice = {
+        baseAmount,
+        pickupCharge,
+        repairCharge,
+        discount,
+        totalAmount,
+        notes,
+        generatedAt:
+          new Date()
+      };
+
+      booking.paymentStatus =
+        "PAYMENT_PENDING";
+
+      booking.status =
+        BOOKING_STATUS.PAYMENT_PENDING;
+
+      booking.lifecycleTimestamps.paymentPendingAt =
+        new Date();
+
+      booking.statusTimeline.push(
+        {
+          status:
+            BOOKING_STATUS.PAYMENT_PENDING,
+
+          updatedAt:
+            new Date(),
+
+          updatedBy:
+            req.user.id,
+
+          role:
+            req.user.role
+        }
+      );
+
+      await booking.save();
+
+      res.json({
+        success: true,
+        message:
+          "Invoice generated successfully",
+        data: booking
+      });
+
+    } catch (error) {
+
+      res.status(500).json({
+        success: false,
+        message:
+          error.message
+      });
+
     }
   };

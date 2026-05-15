@@ -434,6 +434,18 @@ const handleAdd = async (
         b.bookingDate
       )
   );
+const handlePayment =
+  (booking) => {
+
+    alert(
+      `Razorpay payment for ₹${booking.invoice?.totalAmount}`
+    );
+
+  };
+
+  const [invoiceBooking,
+  setInvoiceBooking] =
+    useState(null);
 
   return (
   <div className="min-h-screen bg-slate-100 flex">
@@ -511,6 +523,12 @@ const handleAdd = async (
       <BookingCard
         key={b._id}
         booking={b}
+        handlePayment={
+    handlePayment
+  }
+        setInvoiceBooking={
+    setInvoiceBooking
+  }
       />
     ))}
 
@@ -520,6 +538,179 @@ const handleAdd = async (
 
       </div>
     </div>
+    {invoiceBooking && (
+
+  <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+
+    <div className="bg-white rounded-3xl p-8 w-full max-w-2xl shadow-2xl">
+
+      {/* HEADER */}
+      <div className="flex justify-between items-start">
+
+        <div>
+
+          <h2 className="text-4xl font-black text-slate-900">
+            Vehicle Service Invoice
+          </h2>
+
+          <p className="text-slate-500 mt-2">
+            Booking ID:
+            {" "}
+            {invoiceBooking._id}
+          </p>
+
+        </div>
+
+        <button
+          onClick={() =>
+            setInvoiceBooking(
+              null
+            )
+          }
+          className="text-slate-500 hover:text-red-500 text-2xl font-bold"
+        >
+          ×
+        </button>
+
+      </div>
+
+      {/* CUSTOMER */}
+      <div className="mt-8 grid grid-cols-2 gap-6">
+
+        <div>
+          <p className="text-slate-500 text-sm">
+            Customer
+          </p>
+
+          <h3 className="text-xl font-bold mt-1">
+            {
+              invoiceBooking.user
+                ?.name
+            }
+          </h3>
+        </div>
+
+        <div>
+          <p className="text-slate-500 text-sm">
+            Vehicle
+          </p>
+
+          <h3 className="text-xl font-bold mt-1">
+            {
+              invoiceBooking.vehicle
+                ?.vehicleNumber
+            }
+          </h3>
+        </div>
+
+      </div>
+
+      {/* BREAKDOWN */}
+      <div className="mt-10 space-y-4">
+
+        <div className="flex justify-between">
+          <span>
+            Base Service
+          </span>
+
+          <span>
+            ₹
+            {
+              invoiceBooking
+                .invoice
+                ?.baseAmount
+            }
+          </span>
+        </div>
+
+        <div className="flex justify-between">
+          <span>
+            Pickup Charge
+          </span>
+
+          <span>
+            ₹
+            {
+              invoiceBooking
+                .invoice
+                ?.pickupCharge
+            }
+          </span>
+        </div>
+
+        <div className="flex justify-between">
+          <span>
+            Repair Charge
+          </span>
+
+          <span>
+            ₹
+            {
+              invoiceBooking
+                .invoice
+                ?.repairCharge
+            }
+          </span>
+        </div>
+
+        <div className="flex justify-between text-red-500">
+          <span>
+            Discount
+          </span>
+
+          <span>
+            - ₹
+            {
+              invoiceBooking
+                .invoice
+                ?.discount
+            }
+          </span>
+        </div>
+
+      </div>
+
+      {/* NOTES */}
+      <div className="mt-8 bg-slate-50 rounded-2xl p-5">
+
+        <p className="text-sm text-slate-500">
+          Service Notes
+        </p>
+
+        <p className="mt-2 text-slate-700">
+          {
+            invoiceBooking
+              .invoice
+              ?.notes ||
+            "No Notes"
+          }
+        </p>
+
+      </div>
+
+      {/* TOTAL */}
+      <div className="mt-10 flex justify-between items-center border-t pt-6">
+
+        <h2 className="text-3xl font-black">
+          Total Amount
+        </h2>
+
+        <h2 className="text-4xl font-black text-blue-600">
+          ₹
+          {
+            invoiceBooking
+              .invoice
+              ?.totalAmount
+          }
+        </h2>
+
+      </div>
+
+    </div>
+
+  </div>
+
+)}
   </div>
 );
 }

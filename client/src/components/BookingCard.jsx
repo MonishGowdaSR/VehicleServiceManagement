@@ -2,6 +2,7 @@ import { useNavigate } from "react-router-dom";
 
 function BookingCard({
   booking,
+  handlePayment,
 }) {
   const navigate =
     useNavigate();
@@ -66,6 +67,78 @@ function BookingCard({
           booking.bookingDate
         ).toLocaleDateString()}
       </div>
+
+      {/* PAYMENT SECTION */}
+{booking.status ===
+  "PAYMENT_PENDING" && (
+
+  <div className="mt-6 bg-white rounded-2xl border border-slate-200 p-4">
+
+    <p className="text-sm text-slate-500">
+      Invoice Ready
+    </p>
+
+    <h3 className="text-3xl font-black text-slate-900 mt-2">
+      ₹
+      {
+        booking.invoice
+          ?.totalAmount || 0
+      }
+    </h3>
+
+    <div className="grid grid-cols-2 gap-3 mt-5">
+
+      <button
+  onClick={() =>
+    setInvoiceBooking(
+      booking
+    )
+  }
+  className="bg-slate-900 text-white py-3 rounded-2xl font-bold"
+>
+  View Invoice
+</button>
+
+      <button
+        onClick={() =>
+          handlePayment(
+            booking
+          )
+        }
+        className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-3 rounded-2xl font-bold"
+      >
+        Pay Now
+      </button>
+
+    </div>
+
+  </div>
+
+)}
+
+{/* PAYMENT SUCCESS */}
+{booking.status ===
+  "PAID" && (
+
+  <div className="mt-6 bg-emerald-50 border border-emerald-200 rounded-2xl p-5">
+
+    <h3 className="text-xl font-black text-emerald-700">
+      Payment Successful
+    </h3>
+
+    <p className="text-emerald-600 mt-2">
+      Transaction Completed
+    </p>
+
+    <button
+      className="mt-4 w-full bg-emerald-600 hover:bg-emerald-700 transition-all text-white py-3 rounded-2xl font-bold"
+    >
+      Download Receipt
+    </button>
+
+  </div>
+
+)}
 
       {/* TRACK BUTTON */}
       {booking.bookingType ===
