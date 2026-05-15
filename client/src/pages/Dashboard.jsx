@@ -435,17 +435,124 @@ const handleAdd = async (
       )
   );
 const handlePayment =
-  (booking) => {
+  async (booking) => {
 
-    alert(
-      `Razorpay payment for ₹${booking.invoice?.totalAmount}`
-    );
+    try {
 
+      /* CREATE ORDER */
+      const res =
+        await fetch(
+          "http://localhost:5000/api/payment/create-order",
+          {
+            method: "POST",
+
+            headers: {
+              "Content-Type":
+                "application/json",
+
+              Authorization:
+                `Bearer ${token}`
+            },
+
+            body:
+              JSON.stringify({
+                bookingId:
+                  booking._id
+              })
+          }
+        );
+
+      const data =
+        await res.json();
+
+      if (!data.success) {
+        return alert(
+          data.message
+        );
+      }
+
+      const options = {
+
+        key:
+          "rzp_test_SpiKth9Bex3hU5",
+
+        amount:
+          data.order.amount,
+
+        currency:
+          data.order.currency,
+
+        name:
+          "Vehicle Service Management",
+
+        description:
+          "Service Payment",
+
+        order_id:
+          data.order.id,
+
+        handler:
+          async function (
+            response
+          ) {
+
+            const verifyRes =
+              await fetch(
+                "http://localhost:5000/api/payment/verify",
+                {
+                  method:
+                    "POST",
+
+                  headers: {
+                    "Content-Type":
+                      "application/json",
+
+                    Authorization:
+                      `Bearer ${token}`
+                  },
+
+                  body:
+                    JSON.stringify({
+                      ...response,
+
+                      bookingId:
+                        booking._id
+                    })
+                }
+              );
+
+            const verifyData =
+              await verifyRes.json();
+
+            alert(
+              verifyData.message
+            );
+
+            fetchBookings();
+          },
+
+        theme: {
+          color:
+            "#2563eb"
+        }
+
+      };
+
+      const razorpay =
+        new window.Razorpay(
+          options
+        );
+
+      razorpay.open();
+
+    } catch (error) {
+
+      console.log(
+        error
+      );
+
+    }
   };
-
-  const [invoiceBooking,
-  setInvoiceBooking] =
-    useState(null);
 
   return (
   <div className="min-h-screen bg-slate-100 flex">

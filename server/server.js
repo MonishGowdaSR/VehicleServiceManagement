@@ -1,5 +1,11 @@
-import express from "express";
 import dotenv from "dotenv";
+dotenv.config({
+  path: "./.env"
+});
+console.log(process.env);
+
+import express from "express";
+
 import cors from "cors";
 import http from "http";
 import path from "path";
@@ -15,11 +21,19 @@ import staffActionRoutes from "./routes/staffActionRoutes.js";
 import adminRoutes from "./routes/adminRoutes.js";
 import trackingRoutes from "./routes/trackingRoutes.js";
 import staffRoutes from "./routes/staffRoutes.js";
+import paymentRoutes
+from "./routes/paymentRoutes.js";
 
-dotenv.config();
+
 connectDB();
 
 const app = express();
+
+
+app.use(
+  "/api/payment",
+  paymentRoutes
+);
 
 /* ================= MIDDLEWARE ================= */
 app.use(cors());

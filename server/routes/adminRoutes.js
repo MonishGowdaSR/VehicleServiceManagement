@@ -1,9 +1,10 @@
 import express from "express";
-import protect from "../middleware/auth.js";
+import protect, {
+  adminOnly
+} from "../middleware/auth.js";
 
 import {
   getAllBookings,
-  updateBookingStatus,
   deliverVehicle,
   generateInvoice
 } from "../controllers/adminController.js";
