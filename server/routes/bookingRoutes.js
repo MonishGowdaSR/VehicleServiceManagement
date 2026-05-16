@@ -5,9 +5,9 @@ import upload from "../middleware/uploadMiddleware.js";
 import {
   createBooking,
   getMyBookings,
-  updateBookingStatus
+  updateBookingStatus,
+  getAllBookings
 } from "../controllers/bookingController.js";
-
 const router =
   express.Router();
 
@@ -33,7 +33,11 @@ router.post(
   ),
   createBooking
 );
-
+router.get(
+  "/admin/all",
+  protect,
+  getAllBookings
+);
 /* ========================= */
 /* UPDATE BOOKING STATUS */
 /* ========================= */

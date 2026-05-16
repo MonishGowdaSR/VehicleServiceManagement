@@ -5,11 +5,15 @@ import {
 } from "react-router-dom";
 
 import Login from "./pages/Login";
-import AdminLogin from "./pages/AdminLogin";
 import Dashboard from "./pages/Dashboard";
-import AdminDashboard from "./pages/AdminDashboard";
 import Tracking from "./pages/Tracking";
 import AgentSimulator from "./pages/AgentSimulator";
+import AdminLogin from "./adminPages/AdminLogin";
+import AdminDashboard from "./adminPages/AdminDashboard";
+import AdminBookings from "./adminPages/AdminBookings";
+import AdminPayments from "./adminPages/AdminPayments";
+import AdminAnalytics from "./adminPages/AdminAnalytics";
+import AdminUsers from "./adminPages/AdminUsers";
 
 import "leaflet/dist/leaflet.css";
 
@@ -102,15 +106,51 @@ function App() {
         }
       />
 
+  
+
       {/* ================= ADMIN DASHBOARD ================= */}
-      <Route
-        path="/admin"
-        element={
-          <AdminRoute>
-            <AdminDashboard />
-          </AdminRoute>
-        }
-      />
+        <Route
+  path="/admin"
+  element={
+    <AdminRoute>
+      <AdminDashboard />
+    </AdminRoute>
+  }
+/> <Route
+  path="/admin/bookings"
+  element={
+    <AdminRoute>
+      <AdminBookings />
+    </AdminRoute>
+  }
+/>
+
+<Route
+  path="/admin/payments"
+  element={
+    <AdminRoute>
+      <AdminPayments />
+    </AdminRoute>
+  }
+/>
+
+<Route
+  path="/admin/analytics"
+  element={
+    <AdminRoute>
+      <AdminAnalytics />
+    </AdminRoute>
+  }
+/>
+
+<Route
+  path="/admin/users"
+  element={
+    <AdminRoute>
+      <AdminUsers />
+    </AdminRoute>
+  }
+/>
 
       {/* ================= TRACKING ================= */}
       <Route

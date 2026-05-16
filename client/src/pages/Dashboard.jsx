@@ -60,6 +60,11 @@ function Dashboard() {
     }
   });
 
+  const [
+  invoiceBooking,
+  setInvoiceBooking
+] = useState(null);
+
   useEffect(() => {
     fetchProfile();
     fetchVehicles();

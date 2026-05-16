@@ -182,3 +182,45 @@ export const updateBookingStatus =
         });
     }
   };
+  export const getAllBookings =
+  async (req, res) => {
+
+    try {
+
+      const bookings =
+        await Booking.find()
+          .populate(
+            "user",
+            "name phone profilePhoto"
+          )
+          .populate(
+            "vehicle"
+          )
+          .populate(
+            "pickupAgent",
+            "name"
+          )
+          .populate(
+            "technician",
+            "name"
+          )
+          .sort({
+            createdAt: -1,
+          });
+
+      res.status(200).json({
+        success: true,
+        bookings,
+      });
+
+    } catch (error) {
+
+      console.log(error);
+
+      res.status(500).json({
+        success: false,
+        message:
+          "Failed to fetch bookings",
+      });
+    }
+  };

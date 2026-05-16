@@ -1,4 +1,5 @@
 import { useNavigate } from "react-router-dom";
+import jsPDF from "jspdf";
 
 function BookingCard({
   booking,
@@ -6,6 +7,131 @@ function BookingCard({
 }) {
   const navigate =
     useNavigate();
+
+  const downloadReceipt =
+  () => {
+
+    const doc =
+      new jsPDF();
+
+    /* HEADER */
+    doc.setFontSize(22);
+
+    doc.text(
+      "Vehicle Service Receipt",
+      20,
+      20
+    );
+
+    doc.setFontSize(12);
+
+    doc.text(
+      `Booking ID: ${booking._id}`,
+      20,
+      40
+    );
+
+    doc.text(
+      `Customer: ${
+        booking.user?.name ||
+        "Customer"
+      }`,
+      20,
+      50
+    );
+
+    doc.text(
+      `Vehicle: ${
+        booking.vehicle
+          ?.vehicleNumber
+      }`,
+      20,
+      60
+    );
+
+    doc.text(
+      `Service Type: ${
+        booking.serviceType
+      }`,
+      20,
+      70
+    );
+
+    doc.text(
+      `Payment ID: ${
+        booking.paymentId
+      }`,
+      20,
+      80
+    );
+
+    doc.text(
+      `Payment Date: ${
+        new Date(
+          booking.paidAt
+        ).toLocaleString()
+      }`,
+      20,
+      90
+    );
+
+    /* BREAKDOWN */
+    doc.setFontSize(16);
+
+    doc.text(
+      "Invoice Breakdown",
+      20,
+      115
+    );
+
+    doc.setFontSize(12);
+
+    doc.text(
+      `Base Amount: ₹${booking.invoice?.baseAmount}`,
+      20,
+      130
+    );
+
+    doc.text(
+      `Pickup Charge: ₹${booking.invoice?.pickupCharge}`,
+      20,
+      140
+    );
+
+    doc.text(
+      `Repair Charge: ₹${booking.invoice?.repairCharge}`,
+      20,
+      150
+    );
+
+    doc.text(
+      `Discount: ₹${booking.invoice?.discount}`,
+      20,
+      160
+    );
+
+    /* TOTAL */
+    doc.setFontSize(18);
+
+    doc.text(
+      `TOTAL: ₹${booking.invoice?.totalAmount}`,
+      20,
+      185
+    );
+
+    /* FOOTER */
+    doc.setFontSize(11);
+
+    doc.text(
+      "Thank you for choosing Vehicle Service Management",
+      20,
+      230
+    );
+
+    doc.save(
+      `Receipt-${booking._id}.pdf`
+    );
+  };
 
   return (
     <div className="bg-slate-50 border border-slate-200 rounded-3xl p-6 hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
@@ -131,10 +257,13 @@ function BookingCard({
     </p>
 
     <button
-      className="mt-4 w-full bg-emerald-600 hover:bg-emerald-700 transition-all text-white py-3 rounded-2xl font-bold"
-    >
-      Download Receipt
-    </button>
+  onClick={
+    downloadReceipt
+  }
+  className="mt-4 w-full bg-emerald-600 hover:bg-emerald-700 transition-all text-white py-3 rounded-2xl font-bold"
+>
+  Download Receipt
+</button>
 
   </div>
 

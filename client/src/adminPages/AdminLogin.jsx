@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-//import "./Login.css";
+
 
 function AdminLogin() {
   const [email, setEmail] =
@@ -118,111 +118,93 @@ function AdminLogin() {
         );
       }
     };
+//***************************************************** */
+ return (
+  <div className="min-h-screen bg-gray-100 flex items-center justify-center px-4">
 
-  return (
-    <div className="login-page">
-      <div className="login-card">
-        <h1>
+    <div className="w-full max-w-md bg-white rounded-3xl shadow-2xl p-8">
+
+      <div className="text-center mb-8">
+
+        <h1 className="text-4xl font-black text-slate-900">
           Admin Login
         </h1>
 
-        {step === 1 ? (
-          <>
-            <input
-              placeholder="Admin Email"
-              value={
-                email
-              }
-              onChange={(
-                e
-              ) =>
-                setEmail(
-                  e.target
-                    .value
-                )
-              }
-            />
+        <p className="text-gray-500 mt-2">
+          Vehicle Service Management
+        </p>
 
-            <input
-              placeholder="Phone Number"
-              value={
-                phone
-              }
-              onChange={(
-                e
-              ) =>
-                setPhone(
-                  e.target
-                    .value
-                )
-              }
-            />
+      </div>
 
-            <button
-              onClick={
-                sendOtp
-              }
-            >
-              Send OTP
-            </button>
-          </>
-        ) : (
-          <>
-            <input
-              placeholder="Enter OTP"
-              value={
-                otp
-              }
-              onChange={(
-                e
-              ) =>
-                setOtp(
-                  e.target
-                    .value
-                )
-              }
-            />
+      <div className="space-y-5">
 
-            <button
-              onClick={
-                verifyOtp
-              }
-            >
-              Verify OTP
-            </button>
-          </>
-        )}
+        <input
+          type="email"
+          placeholder="Admin Email"
+          value={email}
+          onChange={(e) =>
+            setEmail(e.target.value)
+          }
+          className="w-full border border-gray-300 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500"
+        />
 
-        <p
-          style={{
-            marginTop:
-              "16px",
-            textAlign:
-              "center"
-          }}
+        <input
+          type="text"
+          placeholder="Phone Number"
+          value={phone}
+          onChange={(e) =>
+            setPhone(e.target.value)
+          }
+          className="w-full border border-gray-300 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500"
+        />
+
+        <button
+          onClick={sendOtp}
+          className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-xl font-bold transition-all"
         >
+          Send OTP
+        </button>
+        <input
+  type="text"
+  placeholder="Enter OTP"
+  value={otp}
+  onChange={(e) =>
+    setOtp(e.target.value)
+  }
+  className="w-full border border-gray-300 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-green-500"
+/>
+
+<button
+  onClick={verifyOtp}
+  className="w-full bg-green-600 hover:bg-green-700 text-white py-3 rounded-xl font-bold transition-all"
+>
+  Verify OTP
+</button>
+
+      </div>
+
+      <div className="text-center mt-6">
+
+        <p className="text-gray-600">
           Customer?{" "}
+
           <span
-            style={{
-              color:
-                "#2563eb",
-              cursor:
-                "pointer",
-              fontWeight:
-                "bold"
-            }}
             onClick={() =>
-              navigate(
-                "/login"
-              )
+              navigate("/login")
             }
+            className="text-blue-600 font-bold cursor-pointer"
           >
             User Login
           </span>
+
         </p>
+
       </div>
+
     </div>
-  );
+
+  </div>
+);
 }
 
 export default AdminLogin;
