@@ -30,16 +30,30 @@ export const validateRole = (
 
     /* ================= ADMIN ================= */
     ADMIN: [
-      ["BOOKED", "ASSIGNED"],
-      ["ASSIGNED", "PICKUP_STARTED"],
-      ["PICKUP_STARTED", "IN_PROGRESS"],
-      ["ASSIGNED", "IN_PROGRESS"], // SELF booking
-      ["IN_PROGRESS", "COMPLETED"],
-      ["COMPLETED", "DELIVERED"],
 
-      ["ANY", "CANCELLED"],
-      ["ANY", "RESCHEDULED"]
-    ]
+  ["BOOKED", "ASSIGNED"],
+
+  ["ASSIGNED", "PICKUP_STARTED"],
+
+  ["PICKUP_STARTED", "IN_PROGRESS"],
+
+  ["ASSIGNED", "IN_PROGRESS"],
+
+  ["IN_PROGRESS", "COMPLETED"],
+
+  ["COMPLETED", "PAYMENT_PENDING"],
+
+  ["PAYMENT_PENDING", "PAID"],
+
+  ["PAID", "READY_FOR_DELIVERY"],
+
+  ["READY_FOR_DELIVERY", "DELIVERED"],
+
+  ["ANY", "CANCELLED"],
+
+  ["ANY", "RESCHEDULED"]
+
+]
   };
 
   const allowed = rules[role];

@@ -633,15 +633,15 @@ const handlePayment =
 
     {bookings.map((b) => (
       <BookingCard
-        key={b._id}
-        booking={b}
-        handlePayment={
+  key={b._id}
+  booking={b}
+  handlePayment={
     handlePayment
   }
-        setInvoiceBooking={
+  setInvoiceBooking={
     setInvoiceBooking
   }
-      />
+/>
     ))}
 
   </div>

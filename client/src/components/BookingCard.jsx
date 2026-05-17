@@ -4,6 +4,7 @@ import jsPDF from "jspdf";
 function BookingCard({
   booking,
   handlePayment,
+  setInvoiceBooking,
 }) {
   const navigate =
     useNavigate();

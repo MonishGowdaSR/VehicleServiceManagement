@@ -1,16 +1,53 @@
 import { BOOKING_STATUS } from "../constants/bookingStatus.js";
 
 const transitions = {
-  BOOKED: ["ASSIGNED", "CANCELLED", "RESCHEDULED"],
-  ASSIGNED: ["PICKUP_STARTED", "IN_PROGRESS", "RESCHEDULED"],
-  PICKUP_STARTED: ["IN_PROGRESS", "RESCHEDULED"],
-  IN_PROGRESS: ["COMPLETED"],
-  COMPLETED: ["DELIVERED"],
-  DELIVERED: [],
-  CANCELLED: [],
-  RESCHEDULED: ["ASSIGNED"]
-};
 
+  BOOKED: [
+    "ASSIGNED",
+    "CANCELLED",
+    "RESCHEDULED"
+  ],
+
+  ASSIGNED: [
+    "PICKUP_STARTED",
+    "IN_PROGRESS",
+    "RESCHEDULED"
+  ],
+
+  PICKUP_STARTED: [
+    "IN_PROGRESS",
+    "RESCHEDULED"
+  ],
+
+  IN_PROGRESS: [
+    "COMPLETED"
+  ],
+
+  COMPLETED: [
+    "PAYMENT_PENDING"
+  ],
+
+  PAYMENT_PENDING: [
+    "PAID"
+  ],
+
+  PAID: [
+    "READY_FOR_DELIVERY"
+  ],
+
+  READY_FOR_DELIVERY: [
+    "DELIVERED"
+  ],
+
+  DELIVERED: [],
+
+  CANCELLED: [],
+
+  RESCHEDULED: [
+    "ASSIGNED"
+  ]
+
+};
 export const validateTransition = (currentStatus, nextStatus, mode) => {
   if (!transitions[currentStatus]?.includes(nextStatus)) {
     throw new Error(`Invalid transition: ${currentStatus} → ${nextStatus}`);
