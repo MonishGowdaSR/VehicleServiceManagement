@@ -296,13 +296,12 @@ invoice: {
 paymentStatus: {
   type: String,
   enum: [
-    "NOT_REQUIRED",
     "PAYMENT_PENDING",
     "PAID",
     "FAILED"
   ],
   default:
-    "NOT_REQUIRED"
+    "PAYMENT_PENDING"
 },
 
 paymentId: {

@@ -7,6 +7,14 @@ function AdminBookings() {
   const [bookings, setBookings] =
     useState([]);
 
+  
+
+  const [search, setSearch] =
+  useState("");
+
+const [statusFilter, setStatusFilter] =
+  useState("ALL");
+
   const [invoiceData, setInvoiceData] =
     useState({
       baseAmount: "",
@@ -428,6 +436,46 @@ function AdminBookings() {
     return `${a.houseNo || ""}, ${a.street || ""}, ${a.area || ""}, ${a.landmark || ""}, ${a.city || ""}, ${a.state || ""} - ${a.pincode || ""}`;
   };
 
+  const filteredBookings =
+  bookings.filter((b) => {
+
+    const searchText =
+      search.toLowerCase();
+
+    const matchesSearch =
+
+      b.user?.name
+        ?.toLowerCase()
+        .includes(searchText)
+
+      ||
+
+      b.user?.phone
+        ?.toLowerCase()
+        .includes(searchText)
+
+      ||
+
+      b.vehicle?.vehicleNumber
+        ?.toLowerCase()
+        .includes(searchText);
+
+    const matchesStatus =
+
+      statusFilter ===
+        "ALL"
+
+      ||
+
+      b.status ===
+      statusFilter;
+
+    return (
+      matchesSearch &&
+      matchesStatus
+    );
+  });
+
   /* ================= RETURN ================= */
 
   return (
@@ -446,11 +494,80 @@ function AdminBookings() {
             Manage customer vehicle service bookings
           </p>
 
+          <div className="flex flex-col md:flex-row gap-4 mb-8 mt-6">
+
+  <input
+    type="text"
+    placeholder="Search customer, phone or vehicle"
+    value={search}
+    onChange={(e) =>
+      setSearch(
+        e.target.value
+      )
+    }
+    className="flex-1 border rounded-2xl px-5 py-4 text-lg"
+  />
+
+  <select
+    value={statusFilter}
+    onChange={(e) =>
+      setStatusFilter(
+        e.target.value
+      )
+    }
+    className="border rounded-2xl px-5 py-4 text-lg"
+  >
+
+    <option value="ALL">
+      All Status
+    </option>
+
+    <option value="BOOKED">
+      BOOKED
+    </option>
+
+    <option value="ASSIGNED">
+      ASSIGNED
+    </option>
+
+    <option value="PICKUP_STARTED">
+      PICKUP_STARTED
+    </option>
+
+    <option value="IN_PROGRESS">
+      IN_PROGRESS
+    </option>
+
+    <option value="COMPLETED">
+      COMPLETED
+    </option>
+
+    <option value="PAYMENT_PENDING">
+      PAYMENT_PENDING
+    </option>
+
+    <option value="PAID">
+      PAID
+    </option>
+
+    <option value="READY_FOR_DELIVERY">
+      READY_FOR_DELIVERY
+    </option>
+
+    <option value="DELIVERED">
+      DELIVERED
+    </option>
+
+  </select>
+
+</div>
+
+
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
 
-          {bookings.map(
+          {filteredBookings.map(
             (b) => (
 
               <div
@@ -654,6 +771,7 @@ function AdminBookings() {
 
         </div>
 
+        
         {/* INVOICE MODAL */}
 
         {

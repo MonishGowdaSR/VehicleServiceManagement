@@ -6,7 +6,8 @@ import protect, {
 import {
   getAllBookings,
   deliverVehicle,
-  generateInvoice
+  generateInvoice,
+  getAllUsers
 } from "../controllers/adminController.js";
 
 const router = express.Router();
@@ -33,6 +34,16 @@ router.patch(
   protect,
   adminOnly,
   generateInvoice
+);
+
+/* =========================
+   GET ALL USERS
+========================= */
+router.get(
+  "/users",
+  protect,
+  adminOnly,
+  getAllUsers
 );
 
 export default router;
