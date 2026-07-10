@@ -29,31 +29,46 @@ Staff assignment and service allocation
 Invoice generation system
 Payment monitoring and revenue tracking
 Customer management
-Analytics dashboard for service operations
 
 ## Technology Stack
 
-# Frontend
-React.js
-Vite
-Tailwind CSS
-Axios
+### Frontend
 
-# Backend
-Node.js
-Express.js
-Database
-MongoDB Atlas
-Authentication & Security
-JWT Authentication
-OTP Verification
-Cloud & Storage
-Cloudinary
-Payment Gateway
-Razorpay
-Maps & Tracking
-Leaflet
-OpenStreetMap
-Other Tools
-jsPDF
-Multer
+- React.js
+- Vite
+- Tailwind CSS
+- Axios
+
+### Backend
+
+- Node.js
+- Express.js
+
+### Database
+
+- MongoDB Atlas
+
+### Authentication & Security
+
+- JWT Authentication
+- OTP Verification
+
+### Cloud & Storage
+
+- Cloudinary
+
+### Payment Gateway
+
+- Razorpay
+
+### Maps & Tracking
+
+- Leaflet
+- OpenStreetMap
+
+### Other Tools
+
+- jsPDF
+- Multer
+Analytics dashboard for service operations
+
