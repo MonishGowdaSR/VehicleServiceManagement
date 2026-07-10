@@ -142,8 +142,6 @@ VehicleServiceManagement/
 │   ├── server.js
 │   └── package.json
 │
-├── ai-services/
-│
 ├── docs/
 │   ├── System_Architecture_Diagram.png
 │   ├── System_Workflow_Diagram.png
@@ -295,6 +293,79 @@ DELIVERED
 
 ---
 
+---
+
+## Installation
+
+### Clone Repository
+
+```bash
+git clone https://github.com/MonishGowdaSR/VehicleServiceManagement.git
+cd VehicleServiceManagement
+```
+
+### Frontend Setup
+
+```bash
+cd client
+npm install
+npm run dev
+```
+
+Frontend will run on:
+
+```text
+http://localhost:5173
+```
+
+### Backend Setup
+
+```bash
+cd server
+npm install
+npm start
+```
+
+Backend will run on:
+
+```text
+http://localhost:5000
+```
+
+---
+
+## Environment Variables
+
+Create a `.env` file inside the `server` directory and configure the following variables:
+
+```env
+PORT=5000
+
+MONGODB_URI=your_mongodb_connection_string
+
+JWT_SECRET=your_jwt_secret
+
+EMAIL_USER=your_email_address
+EMAIL_PASSWORD=your_email_password
+
+CLOUDINARY_CLOUD_NAME=your_cloud_name
+CLOUDINARY_API_KEY=your_api_key
+CLOUDINARY_API_SECRET=your_api_secret
+
+RAZORPAY_KEY_ID=your_razorpay_key_id
+RAZORPAY_KEY_SECRET=your_razorpay_key_secret
+```
+
+These variables are required for:
+
+- Database connectivity
+- JWT authentication
+- OTP email verification
+- Cloudinary image uploads
+- Razorpay payment processing
+
+---
+
 ## Project Highlights
 
 - Designed and developed a complete end-to-end vehicle service management platform using the MERN stack.
@@ -316,6 +387,16 @@ DELIVERED
 - Mobile application support
 - Multi-service-center management
 - Advanced reporting and analytics
+
+---
+
+## License
+
+This project was developed for educational, academic, and portfolio purposes.
+
+Copyright © 2026 Monish Gowda S R.
+
+This repository is intended to showcase software engineering, full-stack web development, and system design skills using the MERN stack.
 
 ---
 
