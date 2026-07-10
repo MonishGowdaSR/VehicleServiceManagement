@@ -1,6 +1,13 @@
 node_modules/
+
 .env
+.env.local
+.env.development
+.env.production
+
 dist/
 build/
+
 __pycache__/
+
 *.log
