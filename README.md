@@ -341,19 +341,19 @@ Create a `.env` file inside the `server` directory and configure the following v
 ```env
 PORT=5000
 
-MONGODB_URI=your_mongodb_connection_string
+MONGODB_URI=
 
-JWT_SECRET=your_jwt_secret
+JWT_SECRET=
 
-EMAIL_USER=your_email_address
-EMAIL_PASSWORD=your_email_password
+EMAIL_USER=
+EMAIL_PASSWORD=
 
-CLOUDINARY_CLOUD_NAME=your_cloud_name
-CLOUDINARY_API_KEY=your_api_key
-CLOUDINARY_API_SECRET=your_api_secret
+CLOUDINARY_CLOUD_NAME=
+CLOUDINARY_API_KEY=
+CLOUDINARY_API_SECRET=
 
-RAZORPAY_KEY_ID=your_razorpay_key_id
-RAZORPAY_KEY_SECRET=your_razorpay_key_secret
+RAZORPAY_KEY_ID=
+RAZORPAY_KEY_SECRET=
 ```
 
 These variables are required for:
