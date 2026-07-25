@@ -1,5 +1,11 @@
 # Vehicle Service Management and Operations Platform
 
+<p align="center">
+  <img src="docs/banner.png"
+       alt="Vehicle Service Management Banner"
+       width="100%">
+</p>
+
 A full-stack MERN application that automates vehicle service operations through OTP authentication, vehicle registration, service booking, real-time tracking, invoice generation, Razorpay payment integration, and administrative management dashboards.
 
 ---
